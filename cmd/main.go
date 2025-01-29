@@ -5,13 +5,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/somatom98/todoist/todo"
 )
+
+var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 type model struct {
 	todoRepo todo.TodoRepo
 	choices  []string
+	list     list.Model
 	cursor   int
 	selected map[int]struct{}
 }
@@ -33,9 +38,11 @@ func (m *model) Init() tea.Cmd {
 		panic("unable to get todo list")
 	}
 
-	for _, item := range todos {
-		m.choices = append(m.choices, item.String())
+	items := []list.Item{}
+	for _, todo := range todos {
+		items = append(items, todo)
 	}
+	m.list = list.New(items, list.NewDefaultDelegate(), 0, 0)
 
 	return nil
 }
@@ -46,51 +53,24 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
-			}
-		case "enter", " ":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
-			} else {
-				m.selected[m.cursor] = struct{}{}
-			}
 		}
+	case tea.WindowSizeMsg:
+		h, v := docStyle.GetFrameSize()
+		m.list.SetSize(msg.Width-h, msg.Height-v)
 	}
 
-	return m, nil
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
+	return m, cmd
 }
 
 func (m *model) View() string {
-	s := "Choices: \n\n"
-
-	for i, choice := range m.choices {
-		cursor := " "
-		if m.cursor == i {
-			cursor = ">"
-		}
-
-		checked := " "
-		if _, ok := m.selected[i]; ok {
-			checked = "x"
-		}
-
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-	}
-
-	s += "\nPress q to quit.\n"
-
-	return s
+	return docStyle.Render(m.list.View())
 }
 
 func main() {
 	p := tea.NewProgram(newModel())
+
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
