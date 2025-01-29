@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -31,20 +30,7 @@ func newModel() *model {
 }
 
 func (m *model) Init() tea.Cmd {
-	ctx := context.Background()
-
-	todos, err := m.todoRepo.GetAll(ctx)
-	if err != nil {
-		panic("unable to get todo list")
-	}
-
-	items := []list.Item{}
-	for _, todo := range todos {
-		items = append(items, todo)
-	}
-	m.list = list.New(items, list.NewDefaultDelegate(), 0, 0)
-
-	return nil
+	return m.getTodoCommand
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -54,6 +40,12 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		}
+	case getTodoCommandResponse:
+		items := []list.Item{}
+		for _, todo := range msg.todos {
+			items = append(items, todo)
+		}
+		m.list = list.New(items, list.NewDefaultDelegate(), 0, 0)
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
