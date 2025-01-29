@@ -1,31 +1,46 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/somatom98/todoist/todo"
 )
 
 type model struct {
+	todoRepo todo.TodoRepo
 	choices  []string
 	cursor   int
 	selected map[int]struct{}
 }
 
-func newModel() model {
-	return model{
-		choices:  []string{"A", "B", "C"},
+func newModel() *model {
+	return &model{
+		todoRepo: todo.NewMockRepo(),
+		choices:  []string{"New"},
 		cursor:   0,
 		selected: make(map[int]struct{}),
 	}
 }
 
-func (m model) Init() tea.Cmd {
+func (m *model) Init() tea.Cmd {
+	ctx := context.Background()
+
+	todos, err := m.todoRepo.GetAll(ctx)
+	if err != nil {
+		panic("unable to get todo list")
+	}
+
+	for _, item := range todos {
+		m.choices = append(m.choices, item.String())
+	}
+
 	return nil
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -52,7 +67,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) View() string {
+func (m *model) View() string {
 	s := "Choices: \n\n"
 
 	for i, choice := range m.choices {
