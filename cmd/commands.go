@@ -8,7 +8,7 @@ import (
 )
 
 type getTodoCommandResponse struct {
-	todos []todo.Todo
+	todos []*todo.Todo
 }
 
 func (m *model) getTodoCommand() tea.Msg {

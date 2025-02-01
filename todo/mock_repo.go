@@ -3,12 +3,12 @@ package todo
 import "context"
 
 type mockRepo struct {
-	todos []Todo
+	todos []*Todo
 }
 
 func NewMockRepo() *mockRepo {
 	return &mockRepo{
-		todos: []Todo{
+		todos: []*Todo{
 			{
 				title: "First todo",
 			},
@@ -19,11 +19,11 @@ func NewMockRepo() *mockRepo {
 	}
 }
 
-func (r *mockRepo) GetAll(ctx context.Context) ([]Todo, error) {
+func (r *mockRepo) GetAll(ctx context.Context) ([]*Todo, error) {
 	return r.todos, nil
 }
 
-func (r *mockRepo) Add(ctx context.Context, item Todo) error {
+func (r *mockRepo) Add(ctx context.Context, item *Todo) error {
 	r.todos = append(r.todos, item)
 	return nil
 }
