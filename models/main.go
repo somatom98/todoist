@@ -30,7 +30,7 @@ func NewMain(todoRepo todo.Repo) *mainModel {
 }
 
 func (m *mainModel) Init() tea.Cmd {
-	return todo.UpdateCmd
+	return todo.UpdateCmd(todo.UpdateMsg{})
 }
 
 func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

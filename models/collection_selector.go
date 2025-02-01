@@ -13,6 +13,7 @@ type collectionSelector struct {
 	ctx      context.Context
 	todoRepo todo.Repo
 	list     list.Model
+	current  todo.Collection
 }
 
 func NewCollectionSelector(todoRepo todo.Repo) *collectionSelector {
@@ -24,7 +25,7 @@ func NewCollectionSelector(todoRepo todo.Repo) *collectionSelector {
 }
 
 func (m *collectionSelector) Init() tea.Cmd {
-	return todo.UpdateCmd
+	return todo.UpdateCmd(todo.UpdateMsg{})
 }
 
 func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -43,7 +44,7 @@ func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			return m, todo.UpdateCmd
+			return m, todo.UpdateCmd(todo.UpdateMsg{})
 		}
 	case todo.UpdateMsg:
 		collections, err := m.todoRepo.Collections(m.ctx)
@@ -65,6 +66,13 @@ func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
+
+	item := m.list.SelectedItem().(todo.Collection)
+	if m.current != item {
+		m.current = item
+		return m, tea.Batch(cmd, todo.UpdateCmd(todo.UpdateMsg{Collection: &m.current}))
+	}
+
 	return m, cmd
 }
 

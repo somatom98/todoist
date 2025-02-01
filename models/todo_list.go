@@ -10,9 +10,10 @@ import (
 )
 
 type todoList struct {
-	ctx      context.Context
-	todoRepo todo.Repo
-	list     list.Model
+	ctx        context.Context
+	todoRepo   todo.Repo
+	list       list.Model
+	collection todo.Collection
 }
 
 func NewTodoList(todoRepo todo.Repo) *todoList {
@@ -24,7 +25,7 @@ func NewTodoList(todoRepo todo.Repo) *todoList {
 }
 
 func (m *todoList) Init() tea.Cmd {
-	return todo.UpdateCmd
+	return todo.UpdateCmd(todo.UpdateMsg{})
 }
 
 func (m *todoList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -43,14 +44,18 @@ func (m *todoList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				log.Printf("err: %w", err)
 				break
 			}
-			return m, todo.UpdateCmd
+			return m, todo.UpdateCmd(todo.UpdateMsg{})
 		case " ", "enter":
 			item := m.list.SelectedItem().(*todo.Item)
 			item.ChangeStatus()
 			m.list.SetItem(m.list.Index(), item)
 		}
 	case todo.UpdateMsg:
-		todos, err := m.todoRepo.GetAll(m.ctx)
+		if msg.Collection != nil {
+			m.collection = *msg.Collection
+		}
+
+		todos, err := m.todoRepo.Get(m.ctx, m.collection)
 		if err != nil {
 			// TODO: popup
 			log.Printf("err: %w", err)

@@ -4,8 +4,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type UpdateMsg struct{}
+type UpdateMsg struct {
+	Collection *Collection
+}
 
-func UpdateCmd() tea.Msg {
-	return UpdateMsg{}
+var _ tea.Cmd = UpdateCmd(UpdateMsg{})
+
+func UpdateCmd(msg UpdateMsg) func() tea.Msg {
+	return func() tea.Msg { return msg }
 }

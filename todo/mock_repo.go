@@ -40,11 +40,11 @@ func (r *mockRepo) GetAll(ctx context.Context) ([]*Item, error) {
 	return r.items, nil
 }
 
-func (r *mockRepo) Get(ctx context.Context, collection string) ([]*Item, error) {
+func (r *mockRepo) Get(ctx context.Context, collection Collection) ([]*Item, error) {
 	filtered := []*Item{}
 
 	for _, item := range r.items {
-		if string(item.collection) == collection {
+		if item.collection == collection {
 			filtered = append(filtered, item)
 		}
 	}
