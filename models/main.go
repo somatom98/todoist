@@ -14,7 +14,6 @@ type mainModel struct {
 	todoRepo    todo.Repo
 	currentView int
 	models      []tea.Model
-	collection  string
 }
 
 func NewMain(todoRepo todo.Repo) *mainModel {
@@ -25,7 +24,6 @@ func NewMain(todoRepo todo.Repo) *mainModel {
 			NewCollectionSelector(todoRepo),
 			NewTodoList(todoRepo),
 		},
-		collection: "main",
 	}
 }
 
