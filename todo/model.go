@@ -11,11 +11,12 @@ type Todo struct {
 	title       string
 	description string
 	done        bool
+	collection  string
 }
 
 var _ list.Item = &Todo{}
 
-func New(title, description string) *Todo {
+func New(title, description, collection string) *Todo {
 	return &Todo{
 		title:       title,
 		description: description,

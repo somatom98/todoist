@@ -14,19 +14,21 @@ import (
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 type model struct {
-	todoRepo todo.TodoRepo
-	choices  []string
-	list     list.Model
-	cursor   int
-	selected map[int]struct{}
+	todoRepo   todo.TodoRepo
+	choices    []string
+	list       list.Model
+	cursor     int
+	selected   map[int]struct{}
+	collection string
 }
 
 func newModel() *model {
 	return &model{
-		todoRepo: todo.NewMockRepo(),
-		choices:  []string{"New"},
-		cursor:   0,
-		selected: make(map[int]struct{}),
+		todoRepo:   todo.NewMockRepo(),
+		choices:    []string{"New"},
+		cursor:     0,
+		selected:   make(map[int]struct{}),
+		collection: "main",
 	}
 }
 
@@ -41,12 +43,13 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "a":
-			err := m.todoRepo.Add(context.TODO(), todo.New("NEW", "TODO"))
+			item := todo.New("NEW", "TODO", "main")
+			err := m.todoRepo.Add(context.TODO(), item)
 			if err != nil {
 				// TODO: popup
 				break
 			}
-			m.list.InsertItem(0, todo.New("NEW", "TODO"))
+			m.list.InsertItem(0, item)
 		case " ", "enter":
 			item := m.list.SelectedItem().(*todo.Todo)
 			item.ChangeStatus()

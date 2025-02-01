@@ -14,7 +14,7 @@ type getTodoCommandResponse struct {
 func (m *model) getTodoCommand() tea.Msg {
 	ctx := context.Background()
 
-	todos, err := m.todoRepo.GetAll(ctx)
+	todos, err := m.todoRepo.Get(ctx, m.collection)
 	if err != nil {
 		panic("unable to get todo list")
 	}
