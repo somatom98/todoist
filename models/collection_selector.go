@@ -24,7 +24,6 @@ func NewCollectionSelector(todoRepo todo.Repo) *collectionSelector {
 }
 
 func (m *collectionSelector) Init() tea.Cmd {
-	log.Printf("SELECTOR, init")
 	return todo.UpdateCmd
 }
 
@@ -53,7 +52,6 @@ func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			log.Printf("err: %w", err)
 			break
 		}
-		log.Printf("SELECTOR, collections: %v", collections)
 
 		items := []list.Item{}
 		for _, collection := range collections {
