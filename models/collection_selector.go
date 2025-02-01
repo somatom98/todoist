@@ -67,9 +67,9 @@ func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.list, cmd = m.list.Update(msg)
 
-	item := m.list.SelectedItem().(todo.Collection)
-	if m.current != item {
-		m.current = item
+	item := m.list.SelectedItem()
+	if item != nil && m.current != item.(todo.Collection) {
+		m.current = item.(todo.Collection)
 		return m, tea.Batch(cmd, todo.UpdateCmd(todo.UpdateMsg{Collection: &m.current}))
 	}
 
