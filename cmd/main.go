@@ -43,6 +43,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "a":
 			m.list.InsertItem(0, todo.New("NEW", "TODO"))
 			m.todoRepo.Add(context.TODO(), todo.New("NEW", "TODO"))
+		case " ", "enter":
+			item := m.list.SelectedItem().(*todo.Todo)
+			item.ChangeStatus()
+			m.list.SetItem(m.list.Index(), item)
 		}
 	case getTodoCommandResponse:
 		items := []list.Item{}
