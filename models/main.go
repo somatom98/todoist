@@ -19,10 +19,10 @@ type mainModel struct {
 func NewMain(todoRepo todo.Repo) *mainModel {
 	return &mainModel{
 		todoRepo:    todoRepo,
-		currentView: 0,
+		currentView: int(collectionSelectorModel),
 		models: []tea.Model{
-			NewCollectionSelector(todoRepo),
-			NewTodoList(todoRepo),
+			collectionSelectorModel: NewCollectionSelector(todoRepo),
+			todoListModel:           NewTodoList(todoRepo),
 		},
 	}
 }
@@ -43,8 +43,10 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "tab":
 			m.currentView = (m.currentView + 1) % len(m.models)
 		default:
+			dest, message := mapMessage(model(m.currentView), msg)
+
 			var cmd tea.Cmd
-			m.models[m.currentView], cmd = m.models[m.currentView].Update(msg)
+			m.models[dest], cmd = m.models[dest].Update(message)
 			cmds = append(cmds, cmd)
 		}
 	default:
