@@ -54,7 +54,7 @@ func (r *mockRepo) Get(ctx context.Context, collection string) ([]*Todo, error) 
 
 func (r *mockRepo) Add(ctx context.Context, newItem *Todo) error {
 	for _, item := range r.todos {
-		if newItem.title == item.title {
+		if newItem.collection == item.collection && newItem.title == item.title {
 			return fmt.Errorf("duplicate item")
 		}
 	}
