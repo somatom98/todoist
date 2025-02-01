@@ -7,10 +7,18 @@ import (
 )
 
 type Todo struct {
-	title string
+	title       string
+	description string
 }
 
 var _ list.Item = Todo{}
+
+func New(title, description string) *Todo {
+	return &Todo{
+		title:       title,
+		description: description,
+	}
+}
 
 func (t *Todo) String() string {
 	return t.title
@@ -25,7 +33,7 @@ func (t Todo) Title() string {
 }
 
 func (t Todo) Description() string {
-	return ""
+	return t.description
 }
 
 type TodoRepo interface {
