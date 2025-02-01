@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type Todo struct {
@@ -39,7 +40,9 @@ func (t *Todo) FilterValue() string {
 func (t *Todo) Title() string {
 	mark := "[ ]"
 	if t.done {
-		mark = "[✔]"
+		mark = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("2")).
+			Render("[✔]")
 	}
 	return fmt.Sprintf("%s %s", mark, t.title)
 }
