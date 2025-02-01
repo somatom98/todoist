@@ -21,6 +21,7 @@ func New(title, description, collection string) *Item {
 		title:       title,
 		description: description,
 		done:        false,
+		collection:  Collection(collection),
 	}
 }
 

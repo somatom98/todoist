@@ -1,4 +1,4 @@
-package todolist
+package models
 
 import (
 	"context"
@@ -6,31 +6,28 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/somatom98/todoist/todo"
 )
 
-var docStyle = lipgloss.NewStyle().Margin(1, 2)
-
-type model struct {
-	todoRepo   todo.TodoRepo
-	list       list.Model
-	collection string
+type todoList struct {
+	ctx      context.Context
+	todoRepo todo.Repo
+	list     list.Model
 }
 
-func New() *model {
-	return &model{
-		todoRepo:   todo.NewMockRepo(),
-		collection: "main",
+func NewTodoList(todoRepo todo.Repo) *todoList {
+	return &todoList{
+		ctx:      context.Background(),
+		todoRepo: todoRepo,
+		list:     list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0),
 	}
 }
 
-func (m *model) Init() tea.Cmd {
-	log.Printf("TODOLIST, init")
-	return m.getItemCmd
+func (m *todoList) Init() tea.Cmd {
+	return todo.UpdateCmd
 }
 
-func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *todoList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	log.Printf("TODOLIST, msg: %T - %+v", msg, msg)
 
 	switch msg := msg.(type) {
@@ -43,20 +40,28 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			err := m.todoRepo.Add(context.TODO(), item)
 			if err != nil {
 				// TODO: popup
+				log.Printf("err: %w", err)
 				break
 			}
-			m.list.InsertItem(0, item)
+			return m, todo.UpdateCmd
 		case " ", "enter":
 			item := m.list.SelectedItem().(*todo.Item)
 			item.ChangeStatus()
 			m.list.SetItem(m.list.Index(), item)
 		}
-	case getItemsMsg:
+	case todo.UpdateMsg:
+		todos, err := m.todoRepo.GetAll(m.ctx)
+		if err != nil {
+			// TODO: popup
+			log.Printf("err: %w", err)
+			break
+		}
+
 		items := []list.Item{}
-		for _, todo := range msg.items {
+		for _, todo := range todos {
 			items = append(items, todo)
 		}
-		m.list = list.New(items, list.NewDefaultDelegate(), 0, 0)
+		m.list.SetItems(items)
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
@@ -67,6 +72,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *model) View() string {
+func (m *todoList) View() string {
 	return docStyle.Render(m.list.View())
 }

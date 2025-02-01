@@ -9,7 +9,7 @@ type mockRepo struct {
 	items []*Item
 }
 
-var _ TodoRepo = &mockRepo{}
+var _ Repo = &mockRepo{}
 
 func NewMockRepo() *mockRepo {
 	return &mockRepo{

@@ -1,4 +1,4 @@
-package collectionselector
+package models
 
 import (
 	"context"
@@ -6,31 +6,29 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/somatom98/todoist/todo"
 )
 
-var docStyle = lipgloss.NewStyle().Margin(1, 2)
-
-type model struct {
+type collectionSelector struct {
 	ctx      context.Context
-	todoRepo todo.TodoRepo
+	todoRepo todo.Repo
 	list     list.Model
 }
 
-func New() *model {
-	return &model{
+func NewCollectionSelector(todoRepo todo.Repo) *collectionSelector {
+	return &collectionSelector{
 		ctx:      context.Background(),
-		todoRepo: todo.NewMockRepo(),
+		todoRepo: todoRepo,
+		list:     list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0),
 	}
 }
 
-func (m *model) Init() tea.Cmd {
+func (m *collectionSelector) Init() tea.Cmd {
 	log.Printf("SELECTOR, init")
-	return getCollectionsCmd
+	return todo.UpdateCmd
 }
 
-func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	log.Printf("SELECTOR, msg: %T - %+v", msg, msg)
 
 	switch msg := msg.(type) {
@@ -38,25 +36,30 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "a":
 			item := todo.New("NEW", "TODO", "new")
+
 			err := m.todoRepo.Add(context.TODO(), item)
 			if err != nil {
 				// TODO: popup
+				log.Printf("err: %w", err)
 				break
 			}
-			// TODO: update items list (and maybe change focus on other view?)
+
+			return m, todo.UpdateCmd
 		}
-	case getCollectionsMsg:
+	case todo.UpdateMsg:
 		collections, err := m.todoRepo.Collections(m.ctx)
 		if err != nil {
 			// TODO: popup
+			log.Printf("err: %w", err)
 			break
 		}
+		log.Printf("SELECTOR, collections: %v", collections)
 
 		items := []list.Item{}
-		for _, todo := range collections {
-			items = append(items, todo)
+		for _, collection := range collections {
+			items = append(items, collection)
 		}
-		m.list = list.New(items, list.NewDefaultDelegate(), 0, 0)
+		m.list.SetItems(items)
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
@@ -67,6 +70,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *model) View() string {
+func (m *collectionSelector) View() string {
 	return docStyle.Render(m.list.View())
 }

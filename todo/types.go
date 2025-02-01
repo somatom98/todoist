@@ -2,7 +2,7 @@ package todo
 
 import "context"
 
-type TodoRepo interface {
+type Repo interface {
 	GetAll(ctx context.Context) ([]*Item, error)
 	Get(ctx context.Context, collection string) ([]*Item, error)
 	Collections(ctx context.Context) ([]Collection, error)
