@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -39,6 +40,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
+		case "a":
+			m.list.InsertItem(0, todo.New("NEW", "TODO"))
+			m.todoRepo.Add(context.TODO(), todo.New("NEW", "TODO"))
 		}
 	case getTodoCommandResponse:
 		items := []list.Item{}

@@ -13,14 +13,14 @@ type Todo struct {
 
 var _ list.Item = Todo{}
 
-func New(title, description string) *Todo {
-	return &Todo{
+func New(title, description string) Todo {
+	return Todo{
 		title:       title,
 		description: description,
 	}
 }
 
-func (t *Todo) String() string {
+func (t Todo) String() string {
 	return t.title
 }
 
@@ -38,4 +38,5 @@ func (t Todo) Description() string {
 
 type TodoRepo interface {
 	GetAll(ctx context.Context) ([]Todo, error)
+	Add(ctx context.Context, item Todo) error
 }

@@ -22,3 +22,8 @@ func NewMockRepo() *mockRepo {
 func (r *mockRepo) GetAll(ctx context.Context) ([]Todo, error) {
 	return r.todos, nil
 }
+
+func (r *mockRepo) Add(ctx context.Context, item Todo) error {
+	r.todos = append(r.todos, item)
+	return nil
+}
