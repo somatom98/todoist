@@ -6,14 +6,14 @@ import (
 )
 
 type mockRepo struct {
-	todos []*Todo
+	items []*Item
 }
 
 var _ TodoRepo = &mockRepo{}
 
 func NewMockRepo() *mockRepo {
 	return &mockRepo{
-		todos: []*Todo{
+		items: []*Item{
 			{
 				title:       "First todo",
 				description: "Description",
@@ -36,15 +36,15 @@ func NewMockRepo() *mockRepo {
 	}
 }
 
-func (r *mockRepo) GetAll(ctx context.Context) ([]*Todo, error) {
-	return r.todos, nil
+func (r *mockRepo) GetAll(ctx context.Context) ([]*Item, error) {
+	return r.items, nil
 }
 
-func (r *mockRepo) Get(ctx context.Context, collection string) ([]*Todo, error) {
-	filtered := []*Todo{}
+func (r *mockRepo) Get(ctx context.Context, collection string) ([]*Item, error) {
+	filtered := []*Item{}
 
-	for _, item := range r.todos {
-		if item.collection == collection {
+	for _, item := range r.items {
+		if string(item.collection) == collection {
 			filtered = append(filtered, item)
 		}
 	}
@@ -52,12 +52,26 @@ func (r *mockRepo) Get(ctx context.Context, collection string) ([]*Todo, error) 
 	return filtered, nil
 }
 
-func (r *mockRepo) Add(ctx context.Context, newItem *Todo) error {
-	for _, item := range r.todos {
+func (r *mockRepo) Collections(ctx context.Context) ([]Collection, error) {
+	checked := map[Collection]bool{}
+	collections := []Collection{}
+
+	for _, item := range r.items {
+		if _, ok := checked[item.collection]; !ok {
+			checked[item.collection] = true
+			collections = append(collections, item.collection)
+		}
+	}
+
+	return collections, nil
+}
+
+func (r *mockRepo) Add(ctx context.Context, newItem *Item) error {
+	for _, item := range r.items {
 		if newItem.collection == item.collection && newItem.title == item.title {
 			return fmt.Errorf("duplicate item")
 		}
 	}
-	r.todos = append(r.todos, newItem)
+	r.items = append(r.items, newItem)
 	return nil
 }

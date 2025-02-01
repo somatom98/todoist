@@ -1,23 +1,25 @@
 package main
 
 import (
-	"context"
-
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/somatom98/todoist/todo"
+	collectionselector "github.com/somatom98/todoist/models/collection_selector"
+	todolist "github.com/somatom98/todoist/models/todo_list"
 )
 
-type getTodoCommandResponse struct {
-	todos []*todo.Todo
+type initMsg struct {
+	Models   []tea.Model
+	InitCmds []tea.Cmd
 }
 
-func (m *model) getTodoCommand() tea.Msg {
-	ctx := context.Background()
-
-	todos, err := m.todoRepo.Get(ctx, m.collection)
-	if err != nil {
-		panic("unable to get todo list")
+func initCommand() tea.Msg {
+	return initMsg{
+		Models: []tea.Model{
+			collectionselector.New(),
+			todolist.New(),
+		},
+		InitCmds: []tea.Cmd{
+			collectionselector.InitCmd,
+			todolist.InitCmd,
+		},
 	}
-
-	return getTodoCommandResponse{todos}
 }

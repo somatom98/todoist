@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
-	"fmt"
+	"log"
 	"os"
 
-	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/somatom98/todoist/todo"
@@ -14,72 +12,80 @@ import (
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
 type model struct {
-	todoRepo   todo.TodoRepo
-	choices    []string
-	list       list.Model
-	cursor     int
-	selected   map[int]struct{}
-	collection string
+	todoRepo    todo.TodoRepo
+	currentView int
+	models      []tea.Model
+	collection  string
 }
 
 func newModel() *model {
 	return &model{
-		todoRepo:   todo.NewMockRepo(),
-		choices:    []string{"New"},
-		cursor:     0,
-		selected:   make(map[int]struct{}),
-		collection: "main",
+		todoRepo:    todo.NewMockRepo(),
+		currentView: 0,
+		collection:  "main",
 	}
 }
 
 func (m *model) Init() tea.Cmd {
-	return m.getTodoCommand
+	return initCommand
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	log.Printf("MAIN, msg: %T - %+v", msg, msg)
+	cmds := []tea.Cmd{}
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "a":
-			item := todo.New("NEW", "TODO", "main")
-			err := m.todoRepo.Add(context.TODO(), item)
-			if err != nil {
-				// TODO: popup
-				break
-			}
-			m.list.InsertItem(0, item)
-		case " ", "enter":
-			item := m.list.SelectedItem().(*todo.Todo)
-			item.ChangeStatus()
-			m.list.SetItem(m.list.Index(), item)
+		case "tab":
+			m.currentView = (m.currentView + 1) % len(m.models)
+		default:
+			var cmd tea.Cmd
+			m.models[m.currentView], cmd = m.models[m.currentView].Update(msg)
+			cmds = append(cmds, cmd)
 		}
-	case getTodoCommandResponse:
-		items := []list.Item{}
-		for _, todo := range msg.todos {
-			items = append(items, todo)
+	case initMsg:
+		m.models = msg.Models
+		for i, mod := range msg.Models {
+			var cmd tea.Cmd
+			initCmd := mod.Init()
+			m.models[i], cmd = mod.Update(initCmd())
+			cmds = append(cmds, cmd)
 		}
-		m.list = list.New(items, list.NewDefaultDelegate(), 0, 0)
-	case tea.WindowSizeMsg:
-		h, v := docStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
+	default:
+		for i, mod := range m.models {
+			var cmd tea.Cmd
+			m.models[i], cmd = mod.Update(msg)
+			cmds = append(cmds, cmd)
+		}
 	}
 
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-	return m, cmd
+	return m, tea.Batch(cmds...)
 }
 
 func (m *model) View() string {
-	return docStyle.Render(m.list.View())
+	var s string
+	renders := []string{}
+	for _, mod := range m.models {
+		renders = append(renders, docStyle.Render(mod.View()))
+	}
+	s += lipgloss.JoinHorizontal(lipgloss.Top, renders...)
+	return s
 }
 
 func main() {
+	f, err := tea.LogToFile("debug.log", "debug")
+	if err != nil {
+		log.Fatalf("dead %w", err)
+	}
+	defer f.Close()
+
 	p := tea.NewProgram(newModel())
 
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
+		log.Fatalf("dead %w", err)
 		os.Exit(1)
 	}
 }
