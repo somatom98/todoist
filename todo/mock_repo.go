@@ -36,10 +36,6 @@ func NewMockRepo() *mockRepo {
 	}
 }
 
-func (r *mockRepo) GetAll(ctx context.Context) ([]*Item, error) {
-	return r.items, nil
-}
-
 func (r *mockRepo) Get(ctx context.Context, collection Collection) ([]*Item, error) {
 	filtered := []*Item{}
 
