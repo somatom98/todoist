@@ -5,6 +5,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/somatom98/todoist/db"
 	"github.com/somatom98/todoist/models"
 	"github.com/somatom98/todoist/todo"
 )
@@ -16,7 +17,10 @@ func main() {
 	}
 	defer f.Close()
 
-	todoRepo := todo.NewMockRepo()
+	conn := db.Init()
+	defer conn.Close()
+
+	todoRepo := todo.NewRepo(conn)
 
 	p := tea.NewProgram(models.NewMain(todoRepo))
 
