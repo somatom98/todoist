@@ -6,38 +6,38 @@ import (
 )
 
 type mockRepo struct {
-	items []*Item
+	items []Item
 }
 
 var _ Repo = &mockRepo{}
 
 func NewMockRepo() *mockRepo {
 	return &mockRepo{
-		items: []*Item{
+		items: []Item{
 			{
 				title:       "First todo",
 				description: "Description",
-				done:        false,
+				completed:   false,
 				collection:  "main",
 			},
 			{
 				title:       "Second todo",
 				description: "Description",
-				done:        true,
+				completed:   true,
 				collection:  "secondary",
 			},
 			{
 				title:       "Second todo",
 				description: "Description",
-				done:        true,
+				completed:   true,
 				collection:  "main",
 			},
 		},
 	}
 }
 
-func (r *mockRepo) Get(ctx context.Context, collection Collection) ([]*Item, error) {
-	filtered := []*Item{}
+func (r *mockRepo) Get(ctx context.Context, collection Collection) ([]Item, error) {
+	filtered := []Item{}
 
 	for _, item := range r.items {
 		if item.collection == collection {
@@ -62,12 +62,21 @@ func (r *mockRepo) Collections(ctx context.Context) ([]Collection, error) {
 	return collections, nil
 }
 
-func (r *mockRepo) Add(ctx context.Context, newItem *Item) error {
+func (r *mockRepo) Add(ctx context.Context, newItem Item) error {
 	for _, item := range r.items {
 		if newItem.collection == item.collection && newItem.title == item.title {
 			return fmt.Errorf("duplicate item")
 		}
 	}
 	r.items = append(r.items, newItem)
+	return nil
+}
+
+func (r *mockRepo) Update(ctx context.Context, id int64, item Item) error {
+	for i, it := range r.items {
+		if it.title == item.title {
+			r.items[i] = item
+		}
+	}
 	return nil
 }

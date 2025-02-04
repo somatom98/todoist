@@ -46,8 +46,8 @@ func (m *todoList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, todo.UpdateCmd(todo.UpdateMsg{})
 		case " ", "enter":
-			item := m.list.SelectedItem().(*todo.Item)
-			item.ChangeStatus()
+			item := m.list.SelectedItem().(todo.Item)
+			m.todoRepo.Update(context.TODO(), 0, item) // TODO change id
 			m.list.SetItem(m.list.Index(), item)
 		}
 	case todo.UpdateMsg:

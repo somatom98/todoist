@@ -8,40 +8,37 @@ import (
 )
 
 type Item struct {
+	id          int64
 	title       string
 	description string
-	done        bool
+	completed   bool
 	collection  Collection
 }
 
-var _ list.Item = &Item{}
+var _ list.Item = Item{}
 
-func New(title, description, collection string) *Item {
-	return &Item{
+func New(title, description, collection string) Item {
+	return Item{
 		title:       title,
 		description: description,
-		done:        false,
+		completed:   false,
 		collection:  Collection(collection),
 	}
 }
 
-func (i *Item) ChangeStatus() {
-	i.done = !i.done
-}
-
-func (i *Item) String() string {
+func (i Item) String() string {
 	return i.title
 }
 
 // Implement list.Item interface
 
-func (i *Item) FilterValue() string {
+func (i Item) FilterValue() string {
 	return i.title
 }
 
-func (i *Item) Title() string {
+func (i Item) Title() string {
 	mark := "[ ]"
-	if i.done {
+	if i.completed {
 		mark = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("2")).
 			Render("[✔]")
@@ -49,6 +46,6 @@ func (i *Item) Title() string {
 	return fmt.Sprintf("%s %s", mark, i.title)
 }
 
-func (i *Item) Description() string {
+func (i Item) Description() string {
 	return fmt.Sprintf("    %s", i.title)
 }
