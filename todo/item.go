@@ -30,6 +30,15 @@ func (i Item) String() string {
 	return i.title
 }
 
+func (i Item) ID() int64 {
+	return i.id
+}
+
+func (i Item) UpdateStatus() Item {
+	i.completed = !i.completed
+	return i
+}
+
 // Implement list.Item interface
 
 func (i Item) FilterValue() string {
