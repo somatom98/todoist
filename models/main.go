@@ -41,9 +41,7 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		if m.focusedView == int(viewItemForm) {
-			var cmd tea.Cmd
-			m.models[viewItemForm], cmd = m.models[viewItemForm].Update(msg)
-			cmds = append(cmds, cmd)
+			cmds = append(cmds, m.update(viewItemForm, msg))
 			break
 		}
 		switch msg.String() {
@@ -55,17 +53,9 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, ViewCmd(ViewMsg{View: viewItemForm}))
 		default:
 			dest, message := mapMessage(view(m.focusedView), msg)
-
-			var cmd tea.Cmd
-			m.models[dest], cmd = m.models[dest].Update(message)
-			cmds = append(cmds, cmd)
+			cmds = append(cmds, m.update(dest, message))
 		}
 	case ViewMsg:
-		if msg.View == viewTodoList {
-			var cmd tea.Cmd
-			m.models[viewItemForm], cmd = m.models[viewItemForm].Update(msg)
-			cmds = append(cmds, cmd)
-		}
 		m.focusedView = int(msg.View)
 	case todo.AddMsg:
 		err := m.todoRepo.Add(context.TODO(), todo.Item(msg))
@@ -76,10 +66,8 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, todo.UpdateCmd(todo.UpdateMsg{})
 	default:
-		for i, mod := range m.models {
-			var cmd tea.Cmd
-			m.models[i], cmd = mod.Update(msg)
-			cmds = append(cmds, cmd)
+		for i := range m.models {
+			cmds = append(cmds, m.update(view(i), msg))
 		}
 	}
 
@@ -111,4 +99,10 @@ func (m *mainModel) changeFocusedView() {
 	case int(viewTodoList):
 		m.focusedView = int(viewCollectionSelector)
 	}
+}
+
+func (m *mainModel) update(v view, msg tea.Msg) tea.Cmd {
+	var cmd tea.Cmd
+	m.models[v], cmd = m.models[v].Update(msg)
+	return cmd
 }
