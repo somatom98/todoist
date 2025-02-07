@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -34,7 +33,7 @@ func Init() *sql.DB {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Migrations applied successfully!")
+	log.Printf("Migrations applied successfully!")
 	_, err = conn.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
 		log.Fatal(err)

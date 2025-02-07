@@ -44,7 +44,7 @@ func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			return m, todo.UpdateCmd(todo.UpdateMsg{})
+			return m, ViewCmd(ViewMsg{View: viewItemForm})
 		}
 	case todo.UpdateMsg:
 		collections, err := m.todoRepo.Collections(m.ctx)

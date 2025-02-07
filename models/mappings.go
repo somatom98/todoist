@@ -6,18 +6,18 @@ import (
 
 type keyMapping struct {
 	key rune
-	m   model
+	m   view
 }
 
-var keyMappings = map[model]map[string]keyMapping{
-	collectionSelectorModel: {
-		"J": {key: 'j', m: todoListModel},
-		"K": {key: 'k', m: todoListModel},
-		" ": {key: ' ', m: todoListModel},
+var keyMappings = map[view]map[string]keyMapping{
+	viewCollectionSelector: {
+		"J": {key: 'j', m: viewTodoList},
+		"K": {key: 'k', m: viewTodoList},
+		" ": {key: ' ', m: viewTodoList},
 	},
 }
 
-func mapMessage(m model, key tea.KeyMsg) (model, tea.KeyMsg) {
+func mapMessage(m view, key tea.KeyMsg) (view, tea.KeyMsg) {
 	if mappedCollection, ok := keyMappings[m]; ok {
 		if mappedRune, ok := mappedCollection[key.String()]; ok {
 			key.Runes = []rune{mappedRune.key}

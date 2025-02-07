@@ -1,8 +1,9 @@
 package models
 
-type model int
+type view int
 
 const (
-	collectionSelectorModel model = iota
-	todoListModel
+	viewCollectionSelector view = iota
+	viewTodoList
+	viewItemForm
 )
