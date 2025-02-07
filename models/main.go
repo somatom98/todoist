@@ -49,8 +49,6 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "tab":
 			m.changeFocusedView()
-		case "a":
-			cmds = append(cmds, ViewCmd(ViewMsg{View: viewItemForm}))
 		default:
 			dest, message := mapMessage(view(m.focusedView), msg)
 			cmds = append(cmds, m.update(dest, message))

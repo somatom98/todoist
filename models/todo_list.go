@@ -41,6 +41,8 @@ func (m *todoList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			item = item.UpdateStatus()
 			m.todoRepo.Update(context.TODO(), item.ID(), item)
 			m.list.SetItem(m.list.Index(), item)
+		case "a":
+			return m, ViewCmd(ViewMsg{View: viewItemForm})
 		}
 	case todo.UpdateMsg:
 		if msg.Collection != nil {

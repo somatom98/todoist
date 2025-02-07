@@ -32,20 +32,6 @@ func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	log.Printf("SELECTOR, msg: %T - %+v", msg, msg)
 
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "a":
-			item := todo.New("NEW", "TODO", "new")
-
-			err := m.todoRepo.Add(context.TODO(), item)
-			if err != nil {
-				// TODO: popup
-				log.Printf("err: %w", err)
-				break
-			}
-
-			return m, ViewCmd(ViewMsg{View: viewItemForm})
-		}
 	case todo.UpdateMsg:
 		collections, err := m.todoRepo.Collections(m.ctx)
 		if err != nil {

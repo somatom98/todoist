@@ -14,6 +14,7 @@ var keyMappings = map[view]map[string]keyMapping{
 		"J": {key: 'j', m: viewTodoList},
 		"K": {key: 'k', m: viewTodoList},
 		" ": {key: ' ', m: viewTodoList},
+		"a": {key: 'a', m: viewTodoList},
 	},
 }
 
