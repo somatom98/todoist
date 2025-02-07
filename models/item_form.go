@@ -65,7 +65,7 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyEnter:
 			if m.focused == len(m.inputs)-1 {
-				cmds = append(cmds, ViewCmd(ViewMsg{View: viewTodoList}))
+				cmds = append(cmds, ViewCmd(ViewMsg{View: viewCollectionSelector}))
 				cmds = append(cmds, todo.AddCmd(todo.AddMsg(
 					todo.New(
 						m.inputs[title].Value(),
@@ -78,6 +78,9 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.prevInput()
 		case tea.KeyTab:
 			m.nextInput()
+		case tea.KeyEsc:
+			cmds = append(cmds, ViewCmd(ViewMsg{View: viewCollectionSelector}))
+			return m, tea.Batch(cmds...)
 		}
 
 		for i := range m.inputs {
