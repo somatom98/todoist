@@ -91,7 +91,7 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Collection == nil {
 			break
 		}
-		m.inputs[collection].Placeholder = string(*msg.Collection)
+		m.inputs[collection].SetValue(string(*msg.Collection))
 	}
 
 	for i := range m.inputs {
@@ -116,9 +116,9 @@ func (m itemFormModel) View() string {
 `,
 		inputStyle.Width(30).Render("Title"),
 		m.inputs[title].View(),
-		inputStyle.Width(6).Render("Description"),
+		inputStyle.Render("Description"),
 		m.inputs[description].View(),
-		inputStyle.Width(6).Render("Collection"),
+		inputStyle.Render("Collection"),
 		m.inputs[collection].View(),
 		continueStyle.Render("Continue ->"),
 	) + "\n"
