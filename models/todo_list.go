@@ -14,6 +14,7 @@ type todoList struct {
 	todoRepo   todo.Repo
 	list       list.Model
 	collection todo.Collection
+	current    todo.Item
 }
 
 func NewTodoList(todoRepo todo.Repo) *todoList {
@@ -39,10 +40,18 @@ func (m *todoList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case " ", "enter":
 			item := m.list.SelectedItem().(todo.Item)
 			item = item.UpdateStatus()
-			m.todoRepo.Update(context.TODO(), item.ID(), item)
+			m.todoRepo.Update(context.TODO(), item.ID, item)
 			m.list.SetItem(m.list.Index(), item)
 		case "a":
-			return m, ViewCmd(ViewMsg{View: viewItemForm})
+			return m, tea.Batch(
+				todo.OperationCmd(todo.OperationAdd, m.current),
+				ViewCmd(ViewMsg{View: viewItemForm}),
+			)
+		case "c":
+			return m, tea.Batch(
+				todo.OperationCmd(todo.OperationChange, m.current),
+				ViewCmd(ViewMsg{View: viewItemForm}),
+			)
 		}
 	case todo.UpdateMsg:
 		if msg.Collection != nil {
@@ -64,6 +73,11 @@ func (m *todoList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		h, v := docStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
+	}
+
+	item := m.list.SelectedItem()
+	if item != nil && m.current != item.(todo.Item) {
+		m.current = item.(todo.Item)
 	}
 
 	var cmd tea.Cmd

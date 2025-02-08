@@ -15,22 +15,22 @@ func NewMockRepo() *mockRepo {
 	return &mockRepo{
 		items: []Item{
 			{
-				title:       "First todo",
-				description: "Description",
-				completed:   false,
-				collection:  "main",
+				Tit:        "First todo",
+				Descr:      "Description",
+				Completed:  false,
+				Collection: "main",
 			},
 			{
-				title:       "Second todo",
-				description: "Description",
-				completed:   true,
-				collection:  "secondary",
+				Tit:        "Second todo",
+				Descr:      "Description",
+				Completed:  true,
+				Collection: "secondary",
 			},
 			{
-				title:       "Second todo",
-				description: "Description",
-				completed:   true,
-				collection:  "main",
+				Tit:        "Second todo",
+				Descr:      "Description",
+				Completed:  true,
+				Collection: "main",
 			},
 		},
 	}
@@ -40,7 +40,7 @@ func (r *mockRepo) Get(ctx context.Context, collection Collection) ([]Item, erro
 	filtered := []Item{}
 
 	for _, item := range r.items {
-		if item.collection == collection {
+		if item.Collection == collection {
 			filtered = append(filtered, item)
 		}
 	}
@@ -53,9 +53,9 @@ func (r *mockRepo) Collections(ctx context.Context) ([]Collection, error) {
 	collections := []Collection{}
 
 	for _, item := range r.items {
-		if _, ok := checked[item.collection]; !ok {
-			checked[item.collection] = true
-			collections = append(collections, item.collection)
+		if _, ok := checked[item.Collection]; !ok {
+			checked[item.Collection] = true
+			collections = append(collections, item.Collection)
 		}
 	}
 
@@ -64,7 +64,7 @@ func (r *mockRepo) Collections(ctx context.Context) ([]Collection, error) {
 
 func (r *mockRepo) Add(ctx context.Context, newItem Item) error {
 	for _, item := range r.items {
-		if newItem.collection == item.collection && newItem.title == item.title {
+		if newItem.Collection == item.Collection && newItem.Tit == item.Tit {
 			return fmt.Errorf("duplicate item")
 		}
 	}
@@ -74,7 +74,7 @@ func (r *mockRepo) Add(ctx context.Context, newItem Item) error {
 
 func (r *mockRepo) Update(ctx context.Context, id int64, item Item) error {
 	for i, it := range r.items {
-		if it.title == item.title {
+		if it.Tit == item.Tit {
 			r.items[i] = item
 		}
 	}

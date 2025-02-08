@@ -27,9 +27,10 @@ var (
 )
 
 type itemFormModel struct {
-	inputs  []textinput.Model
-	focused int
-	err     error
+	inputs    []textinput.Model
+	focused   int
+	item      todo.Item
+	operation todo.Operation
 }
 
 func NewItemFormModel() itemFormModel {
@@ -48,7 +49,6 @@ func NewItemFormModel() itemFormModel {
 	return itemFormModel{
 		inputs:  inputs,
 		focused: 0,
-		err:     nil,
 	}
 }
 
@@ -64,16 +64,23 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			if m.focused == len(m.inputs)-1 {
-				cmds = append(cmds, ViewCmd(ViewMsg{View: viewCollectionSelector}))
-				cmds = append(cmds, todo.AddCmd(todo.AddMsg(
-					todo.New(
-						m.inputs[title].Value(),
-						m.inputs[description].Value(),
-						m.inputs[collection].Value()))))
-				return m, tea.Batch(cmds...)
+			if m.focused != len(m.inputs)-1 {
+				m.nextInput()
 			}
-			m.nextInput()
+
+			item := m.item
+			item.Tit = m.inputs[title].Value()
+			item.Descr = m.inputs[description].Value()
+			item.Collection = todo.Collection(m.inputs[collection].Value())
+
+			cmds = append(cmds, ViewCmd(ViewMsg{View: viewCollectionSelector}))
+			switch m.operation {
+			case todo.OperationAdd:
+				cmds = append(cmds, todo.AddCmd(item))
+			case todo.OperationChange:
+				cmds = append(cmds, todo.ChangeCmd(item))
+			}
+			return m, tea.Batch(cmds...)
 		case tea.KeyShiftTab:
 			m.prevInput()
 		case tea.KeyTab:
@@ -81,17 +88,22 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEsc:
 			cmds = append(cmds, ViewCmd(ViewMsg{View: viewCollectionSelector}))
 			return m, tea.Batch(cmds...)
+		default:
+			log.Printf("collection: %s", m.inputs[collection].Value())
 		}
 
 		for i := range m.inputs {
 			m.inputs[i].Blur()
 		}
 		m.inputs[m.focused].Focus()
-	case todo.UpdateMsg:
-		if msg.Collection == nil {
-			break
+	case todo.OperationMsg:
+		m.operation = msg.Operation
+		m.item = msg.Item
+		m.inputs[collection].SetValue(string(msg.Item.Collection))
+		if msg.Operation == todo.OperationChange {
+			m.inputs[title].SetValue(msg.Item.Tit)
+			m.inputs[description].SetValue(msg.Item.Descr)
 		}
-		m.inputs[collection].SetValue(string(*msg.Collection))
 	}
 
 	for i := range m.inputs {

@@ -63,6 +63,14 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 		return m, todo.UpdateCmd(todo.UpdateMsg{})
+	case todo.ChangeMsg:
+		err := m.todoRepo.Update(context.TODO(), todo.Item(msg).ID, todo.Item(msg))
+		if err != nil {
+			// TODO: popup
+			log.Printf("err: %w", err)
+			break
+		}
+		return m, todo.UpdateCmd(todo.UpdateMsg{})
 	default:
 		for i := range m.models {
 			cmds = append(cmds, m.update(view(i), msg))

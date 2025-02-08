@@ -21,9 +21,9 @@ func NewRepo(database *sql.DB) *repo {
 
 func (r *repo) Add(ctx context.Context, item Item) error {
 	params := db.AddItemParams{
-		Title:       item.title,
-		Description: item.description,
-		Collection:  string(item.collection),
+		Title:       item.Tit,
+		Description: item.Descr,
+		Collection:  string(item.Collection),
 	}
 	return r.db.AddItem(ctx, params)
 }
@@ -51,11 +51,11 @@ func (r *repo) Get(ctx context.Context, collection Collection) ([]Item, error) {
 	mappedItems := []Item{}
 	for _, item := range items {
 		mappedItems = append(mappedItems, Item{
-			id:          item.ID,
-			title:       item.Title,
-			description: item.Description,
-			completed:   item.Completed,
-			collection:  Collection(item.Collection),
+			ID:         item.ID,
+			Tit:        item.Title,
+			Descr:      item.Description,
+			Completed:  item.Completed,
+			Collection: Collection(item.Collection),
 		})
 	}
 	return mappedItems, nil
@@ -63,10 +63,10 @@ func (r *repo) Get(ctx context.Context, collection Collection) ([]Item, error) {
 
 func (r *repo) Update(ctx context.Context, id int64, item Item) error {
 	return r.db.UpdateItem(ctx, db.UpdateItemParams{
-		Title:       item.title,
-		Description: item.description,
-		Completed:   item.completed,
-		Collection:  string(item.collection),
+		Title:       item.Tit,
+		Description: item.Descr,
+		Completed:   item.Completed,
+		Collection:  string(item.Collection),
 		ID:          id,
 	})
 }
