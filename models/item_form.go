@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -19,11 +20,19 @@ const (
 const (
 	hotPink  = lipgloss.Color("#FF06B7")
 	darkGray = lipgloss.Color("#767676")
+	darkRed  = lipgloss.Color("#CC0000")
+)
+
+var (
+	errInvalidTitle       = errors.New("invalid title")
+	errInvalidDescription = errors.New("invalid description")
+	errInvalidCollection  = errors.New("invalid collection")
 )
 
 var (
 	inputStyle    = lipgloss.NewStyle().Foreground(hotPink)
 	continueStyle = lipgloss.NewStyle().Foreground(darkGray)
+	errorStyle    = lipgloss.NewStyle().Foreground(darkRed)
 )
 
 type itemFormModel struct {
@@ -31,6 +40,7 @@ type itemFormModel struct {
 	focused   int
 	item      todo.Item
 	operation todo.Operation
+	err       error
 }
 
 func NewItemFormModel() itemFormModel {
@@ -72,6 +82,11 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			item.Tit = m.inputs[title].Value()
 			item.Descr = m.inputs[description].Value()
 			item.Collection = todo.Collection(m.inputs[collection].Value())
+			m.err = m.validate(item)
+			log.Printf("error: %v", m.err)
+			if m.err != nil {
+				break
+			}
 
 			cmds = append(cmds, ViewCmd(ViewMsg{View: viewCollectionSelector}))
 			switch m.operation {
@@ -88,8 +103,6 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEsc:
 			cmds = append(cmds, ViewCmd(ViewMsg{View: viewCollectionSelector}))
 			return m, tea.Batch(cmds...)
-		default:
-			log.Printf("collection: %s", m.inputs[collection].Value())
 		}
 
 		for i := range m.inputs {
@@ -113,6 +126,11 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m itemFormModel) View() string {
+	bottomMessage := continueStyle.Render("Continue ->")
+	if m.err != nil {
+		bottomMessage = errorStyle.Render(fmt.Sprintf("Error: %s", m.err))
+	}
+
 	return fmt.Sprintf(
 		`
  %s
@@ -132,7 +150,7 @@ func (m itemFormModel) View() string {
 		m.inputs[description].View(),
 		inputStyle.Render("Collection"),
 		m.inputs[collection].View(),
-		continueStyle.Render("Continue ->"),
+		bottomMessage,
 	) + "\n"
 }
 
@@ -145,4 +163,17 @@ func (m *itemFormModel) prevInput() {
 	if m.focused < 0 {
 		m.focused = len(m.inputs) - 1
 	}
+}
+
+func (m itemFormModel) validate(item todo.Item) error {
+	if item.Tit == "" {
+		return errInvalidTitle
+	}
+	if item.Descr == "" {
+		return errInvalidDescription
+	}
+	if item.Collection == "" {
+		return errInvalidCollection
+	}
+	return nil
 }
