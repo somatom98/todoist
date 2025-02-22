@@ -9,7 +9,10 @@ import (
 	"github.com/somatom98/todoist/todo"
 )
 
-var docStyle = lipgloss.NewStyle().Margin(1, 2)
+var (
+	docStyle         = lipgloss.NewStyle().Margin(1, 2)
+	focusedViewStyle = lipgloss.NewStyle().Border(lipgloss.ThickBorder())
+)
 
 type mainModel struct {
 	todoRepo    todo.Repo
@@ -90,10 +93,29 @@ func (m *mainModel) View() string {
 
 	switch m.focusedView {
 	case int(viewTodoList), int(viewInProgressList), int(viewDoneList), int(viewCollectionSelector):
-		renders = append(renders, docStyle.Render(m.models[viewCollectionSelector].View()))
-		renders = append(renders, docStyle.Render(m.models[viewTodoList].View()))
-		renders = append(renders, docStyle.Render(m.models[viewInProgressList].View()))
-		renders = append(renders, docStyle.Render(m.models[viewDoneList].View()))
+		if m.focusedView == int(viewCollectionSelector) {
+			renders = append(renders, focusedViewStyle.Render(m.models[viewCollectionSelector].View()))
+		} else {
+			renders = append(renders, docStyle.Render(m.models[viewCollectionSelector].View()))
+		}
+
+		if m.focusedView == int(viewTodoList) {
+			renders = append(renders, focusedViewStyle.Render(m.models[viewTodoList].View()))
+		} else {
+			renders = append(renders, docStyle.Render(m.models[viewTodoList].View()))
+		}
+
+		if m.focusedView == int(viewInProgressList) {
+			renders = append(renders, focusedViewStyle.Render(m.models[viewInProgressList].View()))
+		} else {
+			renders = append(renders, docStyle.Render(m.models[viewInProgressList].View()))
+		}
+
+		if m.focusedView == int(viewDoneList) {
+			renders = append(renders, focusedViewStyle.Render(m.models[viewDoneList].View()))
+		} else {
+			renders = append(renders, docStyle.Render(m.models[viewDoneList].View()))
+		}
 	case int(viewItemForm):
 		renders = append(renders, docStyle.Render(m.models[viewItemForm].View()))
 	}
