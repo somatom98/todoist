@@ -5,9 +5,9 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/somatom98/todoist/controllers"
 	"github.com/somatom98/todoist/db"
 	"github.com/somatom98/todoist/models"
-	"github.com/somatom98/todoist/todo"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 	conn := db.Init()
 	defer conn.Close()
 
-	todoRepo := todo.NewRepo(conn)
+	todoRepo := controllers.NewRepo(conn)
 
 	p := tea.NewProgram(models.NewMain(todoRepo))
 

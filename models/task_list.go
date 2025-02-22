@@ -6,19 +6,20 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/somatom98/todoist/todo"
+	"github.com/somatom98/todoist/controllers"
+	"github.com/somatom98/todoist/domain"
 )
 
 type taskList struct {
-	status     todo.Status
+	status     domain.Status
 	ctx        context.Context
-	todoRepo   todo.Repo
+	todoRepo   controllers.ItemsRepo
 	list       list.Model
-	collection todo.Collection
-	current    todo.Item
+	collection domain.Collection
+	current    domain.Item
 }
 
-func NewTaskList(status todo.Status, todoRepo todo.Repo) *taskList {
+func NewTaskList(status domain.Status, todoRepo controllers.ItemsRepo) *taskList {
 	return &taskList{
 		status:   status,
 		ctx:      context.Background(),
@@ -28,7 +29,7 @@ func NewTaskList(status todo.Status, todoRepo todo.Repo) *taskList {
 }
 
 func (m *taskList) Init() tea.Cmd {
-	return todo.UpdateCmd(todo.UpdateMsg{})
+	return domain.UpdateCmd(domain.UpdateMsg{})
 }
 
 func (m *taskList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -38,22 +39,22 @@ func (m *taskList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case " ", "enter":
-			item := m.list.SelectedItem().(todo.Item)
+			item := m.list.SelectedItem().(domain.Item)
 			item = item.UpdateStatus()
 			m.todoRepo.Update(m.ctx, item.ID, item)
-			return m, todo.UpdateCmd(todo.UpdateMsg{})
+			return m, domain.UpdateCmd(domain.UpdateMsg{})
 		case "a":
 			return m, tea.Batch(
-				todo.OperationCmd(todo.OperationAdd, m.current),
-				ViewCmd(ViewMsg{View: viewItemForm}),
+				domain.OperationCmd(domain.OperationAdd, m.current),
+				ViewCmd(ViewMsg{View: domain.ViewItemForm}),
 			)
 		case "c":
 			return m, tea.Batch(
-				todo.OperationCmd(todo.OperationChange, m.current),
-				ViewCmd(ViewMsg{View: viewItemForm}),
+				domain.OperationCmd(domain.OperationChange, m.current),
+				ViewCmd(ViewMsg{View: domain.ViewItemForm}),
 			)
 		}
-	case todo.UpdateMsg:
+	case domain.UpdateMsg:
 		if msg.Collection != nil {
 			m.collection = *msg.Collection
 		}
@@ -76,8 +77,8 @@ func (m *taskList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	item := m.list.SelectedItem()
-	if item != nil && m.current != item.(todo.Item) {
-		m.current = item.(todo.Item)
+	if item != nil && m.current != item.(domain.Item) {
+		m.current = item.(domain.Item)
 	}
 
 	var cmd tea.Cmd

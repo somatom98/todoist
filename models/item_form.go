@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/somatom98/todoist/todo"
+	"github.com/somatom98/todoist/domain"
 )
 
 const (
@@ -38,8 +38,8 @@ var (
 type itemFormModel struct {
 	inputs    []textinput.Model
 	focused   int
-	item      todo.Item
-	operation todo.Operation
+	item      domain.Item
+	operation domain.Operation
 	err       error
 }
 
@@ -81,19 +81,19 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			item := m.item
 			item.Tit = m.inputs[title].Value()
 			item.Descr = m.inputs[description].Value()
-			item.Collection = todo.Collection(m.inputs[collection].Value())
+			item.Collection = domain.Collection(m.inputs[collection].Value())
 			m.err = m.validate(item)
 			log.Printf("error: %v", m.err)
 			if m.err != nil {
 				break
 			}
 
-			cmds = append(cmds, ViewCmd(ViewMsg{View: viewCollectionSelector}))
+			cmds = append(cmds, ViewCmd(ViewMsg{View: domain.ViewCollectionSelector}))
 			switch m.operation {
-			case todo.OperationAdd:
-				cmds = append(cmds, todo.AddCmd(item))
-			case todo.OperationChange:
-				cmds = append(cmds, todo.ChangeCmd(item))
+			case domain.OperationAdd:
+				cmds = append(cmds, domain.AddCmd(item))
+			case domain.OperationChange:
+				cmds = append(cmds, domain.ChangeCmd(item))
 			}
 			return m, tea.Batch(cmds...)
 		case tea.KeyShiftTab:
@@ -101,7 +101,7 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyTab:
 			m.nextInput()
 		case tea.KeyEsc:
-			cmds = append(cmds, ViewCmd(ViewMsg{View: viewCollectionSelector}))
+			cmds = append(cmds, ViewCmd(ViewMsg{View: domain.ViewCollectionSelector}))
 			return m, tea.Batch(cmds...)
 		}
 
@@ -109,11 +109,11 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.inputs[i].Blur()
 		}
 		m.inputs[m.focused].Focus()
-	case todo.OperationMsg:
+	case domain.OperationMsg:
 		m.operation = msg.Operation
 		m.item = msg.Item
 		m.inputs[collection].SetValue(string(msg.Item.Collection))
-		if msg.Operation == todo.OperationChange {
+		if msg.Operation == domain.OperationChange {
 			m.inputs[title].SetValue(msg.Item.Tit)
 			m.inputs[description].SetValue(msg.Item.Descr)
 		}
@@ -165,7 +165,7 @@ func (m *itemFormModel) prevInput() {
 	}
 }
 
-func (m itemFormModel) validate(item todo.Item) error {
+func (m itemFormModel) validate(item domain.Item) error {
 	if item.Tit == "" {
 		return errInvalidTitle
 	}

@@ -6,7 +6,8 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/somatom98/todoist/todo"
+	"github.com/somatom98/todoist/controllers"
+	"github.com/somatom98/todoist/domain"
 )
 
 var (
@@ -15,28 +16,28 @@ var (
 )
 
 type mainModel struct {
-	todoRepo    todo.Repo
+	todoRepo    controllers.ItemsRepo
 	focusedView int
 	models      []tea.Model
-	collection  todo.Collection
+	collection  domain.Collection
 }
 
-func NewMain(todoRepo todo.Repo) *mainModel {
+func NewMain(todoRepo controllers.ItemsRepo) *mainModel {
 	return &mainModel{
 		todoRepo:    todoRepo,
-		focusedView: int(viewCollectionSelector),
+		focusedView: int(domain.ViewCollectionSelector),
 		models: []tea.Model{
-			viewCollectionSelector: NewCollectionSelector(todoRepo),
-			viewTodoList:           NewTaskList(todo.StatusTodo, todoRepo),
-			viewInProgressList:     NewTaskList(todo.StatusInProgress, todoRepo),
-			viewDoneList:           NewTaskList(todo.StatusDone, todoRepo),
-			viewItemForm:           NewItemFormModel(),
+			domain.ViewCollectionSelector: NewCollectionSelector(todoRepo),
+			domain.ViewTodoList:           NewTaskList(domain.StatusTodo, todoRepo),
+			domain.ViewInProgressList:     NewTaskList(domain.StatusInProgress, todoRepo),
+			domain.ViewDoneList:           NewTaskList(domain.StatusDone, todoRepo),
+			domain.ViewItemForm:           NewItemFormModel(),
 		},
 	}
 }
 
 func (m *mainModel) Init() tea.Cmd {
-	return todo.UpdateCmd(todo.UpdateMsg{})
+	return domain.UpdateCmd(domain.UpdateMsg{})
 }
 
 func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -45,8 +46,8 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if m.focusedView == int(viewItemForm) {
-			cmds = append(cmds, m.update(viewItemForm, msg))
+		if m.focusedView == int(domain.ViewItemForm) {
+			cmds = append(cmds, m.update(domain.ViewItemForm, msg))
 			break
 		}
 		switch msg.String() {
@@ -55,30 +56,30 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "tab":
 			m.changeFocusedView()
 		default:
-			dest, message := mapMessage(view(m.focusedView), msg)
+			dest, message := mapMessage(domain.View(m.focusedView), msg)
 			cmds = append(cmds, m.update(dest, message))
 		}
 	case ViewMsg:
 		m.focusedView = int(msg.View)
-	case todo.AddMsg:
-		err := m.todoRepo.Add(context.TODO(), todo.Item(msg))
+	case domain.AddMsg:
+		err := m.todoRepo.Add(context.TODO(), domain.Item(msg))
 		if err != nil {
 			// TODO: popup
 			log.Printf("err: %w", err)
 			break
 		}
-		return m, todo.UpdateCmd(todo.UpdateMsg{})
-	case todo.ChangeMsg:
-		err := m.todoRepo.Update(context.TODO(), todo.Item(msg).ID, todo.Item(msg))
+		return m, domain.UpdateCmd(domain.UpdateMsg{})
+	case domain.ChangeMsg:
+		err := m.todoRepo.Update(context.TODO(), domain.Item(msg).ID, domain.Item(msg))
 		if err != nil {
 			// TODO: popup
 			log.Printf("err: %w", err)
 			break
 		}
-		return m, todo.UpdateCmd(todo.UpdateMsg{})
+		return m, domain.UpdateCmd(domain.UpdateMsg{})
 	default:
 		for i := range m.models {
-			cmds = append(cmds, m.update(view(i), msg))
+			cmds = append(cmds, m.update(domain.View(i), msg))
 		}
 	}
 
@@ -92,32 +93,32 @@ func (m *mainModel) View() string {
 	log.Printf("focused view: %v", m.focusedView)
 
 	switch m.focusedView {
-	case int(viewTodoList), int(viewInProgressList), int(viewDoneList), int(viewCollectionSelector):
-		if m.focusedView == int(viewCollectionSelector) {
-			renders = append(renders, focusedViewStyle.Render(m.models[viewCollectionSelector].View()))
+	case int(domain.ViewTodoList), int(domain.ViewInProgressList), int(domain.ViewDoneList), int(domain.ViewCollectionSelector):
+		if m.focusedView == int(domain.ViewCollectionSelector) {
+			renders = append(renders, focusedViewStyle.Render(m.models[domain.ViewCollectionSelector].View()))
 		} else {
-			renders = append(renders, docStyle.Render(m.models[viewCollectionSelector].View()))
+			renders = append(renders, docStyle.Render(m.models[domain.ViewCollectionSelector].View()))
 		}
 
-		if m.focusedView == int(viewTodoList) {
-			renders = append(renders, focusedViewStyle.Render(m.models[viewTodoList].View()))
+		if m.focusedView == int(domain.ViewTodoList) {
+			renders = append(renders, focusedViewStyle.Render(m.models[domain.ViewTodoList].View()))
 		} else {
-			renders = append(renders, docStyle.Render(m.models[viewTodoList].View()))
+			renders = append(renders, docStyle.Render(m.models[domain.ViewTodoList].View()))
 		}
 
-		if m.focusedView == int(viewInProgressList) {
-			renders = append(renders, focusedViewStyle.Render(m.models[viewInProgressList].View()))
+		if m.focusedView == int(domain.ViewInProgressList) {
+			renders = append(renders, focusedViewStyle.Render(m.models[domain.ViewInProgressList].View()))
 		} else {
-			renders = append(renders, docStyle.Render(m.models[viewInProgressList].View()))
+			renders = append(renders, docStyle.Render(m.models[domain.ViewInProgressList].View()))
 		}
 
-		if m.focusedView == int(viewDoneList) {
-			renders = append(renders, focusedViewStyle.Render(m.models[viewDoneList].View()))
+		if m.focusedView == int(domain.ViewDoneList) {
+			renders = append(renders, focusedViewStyle.Render(m.models[domain.ViewDoneList].View()))
 		} else {
-			renders = append(renders, docStyle.Render(m.models[viewDoneList].View()))
+			renders = append(renders, docStyle.Render(m.models[domain.ViewDoneList].View()))
 		}
-	case int(viewItemForm):
-		renders = append(renders, docStyle.Render(m.models[viewItemForm].View()))
+	case int(domain.ViewItemForm):
+		renders = append(renders, docStyle.Render(m.models[domain.ViewItemForm].View()))
 	}
 
 	s += lipgloss.JoinHorizontal(lipgloss.Top, renders...)
@@ -126,18 +127,18 @@ func (m *mainModel) View() string {
 
 func (m *mainModel) changeFocusedView() {
 	switch m.focusedView {
-	case int(viewCollectionSelector):
-		m.focusedView = int(viewTodoList)
-	case int(viewTodoList):
-		m.focusedView = int(viewInProgressList)
-	case int(viewInProgressList):
-		m.focusedView = int(viewDoneList)
-	case int(viewDoneList):
-		m.focusedView = int(viewCollectionSelector)
+	case int(domain.ViewCollectionSelector):
+		m.focusedView = int(domain.ViewTodoList)
+	case int(domain.ViewTodoList):
+		m.focusedView = int(domain.ViewInProgressList)
+	case int(domain.ViewInProgressList):
+		m.focusedView = int(domain.ViewDoneList)
+	case int(domain.ViewDoneList):
+		m.focusedView = int(domain.ViewCollectionSelector)
 	}
 }
 
-func (m *mainModel) update(v view, msg tea.Msg) tea.Cmd {
+func (m *mainModel) update(v domain.View, msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	m.models[v], cmd = m.models[v].Update(msg)
 	return cmd

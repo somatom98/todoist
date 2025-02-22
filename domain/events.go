@@ -1,4 +1,4 @@
-package todo
+package domain
 
 import (
 	tea "github.com/charmbracelet/bubbletea"

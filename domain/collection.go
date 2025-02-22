@@ -1,4 +1,4 @@
-package todo
+package domain
 
 import (
 	"github.com/charmbracelet/bubbles/list"

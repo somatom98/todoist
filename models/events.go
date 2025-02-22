@@ -2,10 +2,11 @@ package models
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/somatom98/todoist/domain"
 )
 
 type ViewMsg struct {
-	View view
+	View domain.View
 }
 
 var _ tea.Cmd = ViewCmd(ViewMsg{})

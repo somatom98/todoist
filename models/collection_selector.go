@@ -6,17 +6,18 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/somatom98/todoist/todo"
+	"github.com/somatom98/todoist/controllers"
+	"github.com/somatom98/todoist/domain"
 )
 
 type collectionSelector struct {
 	ctx      context.Context
-	todoRepo todo.Repo
+	todoRepo controllers.Repo
 	list     list.Model
-	current  todo.Collection
+	current  domain.Collection
 }
 
-func NewCollectionSelector(todoRepo todo.Repo) *collectionSelector {
+func NewCollectionSelector(todoRepo controllers.Repo) *collectionSelector {
 	return &collectionSelector{
 		ctx:      context.Background(),
 		todoRepo: todoRepo,
@@ -25,14 +26,14 @@ func NewCollectionSelector(todoRepo todo.Repo) *collectionSelector {
 }
 
 func (m *collectionSelector) Init() tea.Cmd {
-	return todo.UpdateCmd(todo.UpdateMsg{})
+	return domain.UpdateCmd(domain.UpdateMsg{})
 }
 
 func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	log.Printf("SELECTOR, msg: %T - %+v", msg, msg)
 
 	switch msg := msg.(type) {
-	case todo.UpdateMsg:
+	case domain.UpdateMsg:
 		collections, err := m.todoRepo.Collections(m.ctx)
 		if err != nil {
 			// TODO: popup
@@ -54,9 +55,9 @@ func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.list, cmd = m.list.Update(msg)
 
 	item := m.list.SelectedItem()
-	if item != nil && m.current != item.(todo.Collection) {
-		m.current = item.(todo.Collection)
-		return m, tea.Batch(cmd, todo.UpdateCmd(todo.UpdateMsg{Collection: &m.current}))
+	if item != nil && m.current != item.(domain.Collection) {
+		m.current = item.(domain.Collection)
+		return m, tea.Batch(cmd, domain.UpdateCmd(domain.UpdateMsg{Collection: &m.current}))
 	}
 
 	return m, cmd
