@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"log"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -15,6 +14,9 @@ type collectionSelector struct {
 	todoRepo controllers.ItemsRepo
 	list     list.Model
 	current  domain.Collection
+	focused  bool
+	width    int
+	height   int
 }
 
 func NewCollectionSelector(todoRepo controllers.ItemsRepo) *collectionSelector {
@@ -30,14 +32,11 @@ func (m *collectionSelector) Init() tea.Cmd {
 }
 
 func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	log.Printf("SELECTOR, msg: %T - %+v", msg, msg)
-
 	switch msg := msg.(type) {
 	case domain.UpdateMsg:
 		collections, err := m.todoRepo.Collections(m.ctx)
 		if err != nil {
 			// TODO: popup
-			log.Printf("err: %w", err)
 			break
 		}
 
@@ -47,8 +46,10 @@ func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.list.SetItems(items)
 	case tea.WindowSizeMsg:
-		h, v := docStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
+		h, v := paneStyle.GetFrameSize()
+		m.width = (msg.Width - h) / 4
+		m.height = msg.Height - v
+		m.list.SetSize(m.width, m.height)
 	}
 
 	var cmd tea.Cmd
@@ -64,5 +65,13 @@ func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *collectionSelector) View() string {
-	return docStyle.Render(m.list.View())
+	style := paneStyle
+	if m.focused {
+		style = focusedPaneStyle
+	}
+	return style.Render(m.list.View())
+}
+
+func (m *collectionSelector) ChangeFocus() {
+	m.focused = !m.focused
 }

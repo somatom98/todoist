@@ -11,8 +11,15 @@ import (
 )
 
 var (
-	docStyle         = lipgloss.NewStyle().Margin(1, 2)
-	focusedViewStyle = lipgloss.NewStyle().Border(lipgloss.ThickBorder())
+	docStyle = lipgloss.NewStyle().
+			Margin(2, 2)
+	paneStyle = docStyle.
+			Border(lipgloss.NormalBorder()).
+			Padding(1, 2)
+	focusedPaneStyle = docStyle.
+				Border(lipgloss.DoubleBorder()).
+				BorderForeground(lipgloss.AdaptiveColor{Light: "#EE6FF8", Dark: "#EE6FF8"}).
+				Padding(1, 2)
 )
 
 type mainModel struct {
@@ -37,6 +44,7 @@ func NewMain(todoRepo controllers.ItemsRepo, paneSelector controllers.PaneSelect
 }
 
 func (m *mainModel) Init() tea.Cmd {
+	m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
 	return domain.UpdateCmd(domain.UpdateMsg{})
 }
 
@@ -50,13 +58,18 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, m.update(domain.PaneItemForm, msg))
 			break
 		}
+
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "tab", "l":
+			m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
 			m.paneSelector.FocusNext()
+			m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
 		case "h":
+			m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
 			m.paneSelector.FocusPrev()
+			m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
 		default:
 			cmds = append(cmds, m.update(m.paneSelector.CurrentFocus(), msg))
 		}
@@ -93,34 +106,15 @@ func (m *mainModel) View() string {
 
 	switch m.paneSelector.CurrentFocus() {
 	case domain.PaneTodoList, domain.PaneInProgressList, domain.PaneDoneList, domain.PaneCollectionSelector:
-		if m.paneSelector.CurrentFocus() == domain.PaneCollectionSelector {
-			renders = append(renders, focusedViewStyle.Render(m.models[domain.PaneCollectionSelector].View()))
-		} else {
-			renders = append(renders, docStyle.Render(m.models[domain.PaneCollectionSelector].View()))
-		}
-
-		if m.paneSelector.CurrentFocus() == domain.PaneTodoList {
-			renders = append(renders, focusedViewStyle.Render(m.models[domain.PaneTodoList].View()))
-		} else {
-			renders = append(renders, docStyle.Render(m.models[domain.PaneTodoList].View()))
-		}
-
-		if m.paneSelector.CurrentFocus() == domain.PaneInProgressList {
-			renders = append(renders, focusedViewStyle.Render(m.models[domain.PaneInProgressList].View()))
-		} else {
-			renders = append(renders, docStyle.Render(m.models[domain.PaneInProgressList].View()))
-		}
-
-		if m.paneSelector.CurrentFocus() == domain.PaneDoneList {
-			renders = append(renders, focusedViewStyle.Render(m.models[domain.PaneDoneList].View()))
-		} else {
-			renders = append(renders, docStyle.Render(m.models[domain.PaneDoneList].View()))
-		}
+		renders = append(renders, m.models[domain.PaneCollectionSelector].View())
+		renders = append(renders, m.models[domain.PaneTodoList].View())
+		renders = append(renders, m.models[domain.PaneInProgressList].View())
+		renders = append(renders, m.models[domain.PaneDoneList].View())
 	case domain.PaneItemForm:
 		renders = append(renders, docStyle.Render(m.models[domain.PaneItemForm].View()))
 	}
 
-	s += lipgloss.JoinHorizontal(lipgloss.Top, renders...)
+	s = lipgloss.JoinHorizontal(lipgloss.Left, renders...)
 	return s
 }
 

@@ -175,3 +175,6 @@ func (m itemFormModel) validate(item domain.Item) error {
 	}
 	return nil
 }
+
+func (m itemFormModel) ChangeFocus() {
+}

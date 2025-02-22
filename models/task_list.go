@@ -17,6 +17,9 @@ type taskList struct {
 	list       list.Model
 	collection domain.Collection
 	current    domain.Item
+	focused    bool
+	width      int
+	height     int
 }
 
 func NewTaskList(status domain.Status, todoRepo controllers.ItemsRepo) *taskList {
@@ -33,8 +36,6 @@ func (m *taskList) Init() tea.Cmd {
 }
 
 func (m *taskList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	log.Printf("TASKLIST, msg: %T - %+v", msg, msg)
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -66,8 +67,10 @@ func (m *taskList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.list.SetItems(items)
 	case tea.WindowSizeMsg:
-		h, v := docStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
+		h, v := paneStyle.GetFrameSize()
+		m.width = (msg.Width - h) / 4
+		m.height = msg.Height - v
+		m.list.SetSize(m.width, m.height)
 	}
 
 	item := m.list.SelectedItem()
@@ -82,5 +85,13 @@ func (m *taskList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *taskList) View() string {
 	m.list.Title = string(m.status)
-	return docStyle.Render(m.list.View())
+	style := paneStyle
+	if m.focused {
+		style = focusedPaneStyle
+	}
+	return style.Width(m.width).Height(m.height).Render(m.list.View())
+}
+
+func (m *taskList) ChangeFocus() {
+	m.focused = !m.focused
 }
