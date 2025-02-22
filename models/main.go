@@ -46,17 +46,19 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if m.paneSelector.GetFocus() == domain.PaneItemForm {
+		if m.paneSelector.CurrentFocus() == domain.PaneItemForm {
 			cmds = append(cmds, m.update(domain.PaneItemForm, msg))
 			break
 		}
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "tab":
+		case "tab", "l":
 			m.paneSelector.FocusNext()
+		case "h":
+			m.paneSelector.FocusPrev()
 		default:
-			cmds = append(cmds, m.update(m.paneSelector.GetFocus(), msg))
+			cmds = append(cmds, m.update(m.paneSelector.CurrentFocus(), msg))
 		}
 	case domain.AddMsg:
 		err := m.todoRepo.Add(context.TODO(), domain.Item(msg))
@@ -87,29 +89,29 @@ func (m *mainModel) View() string {
 	var s string
 	renders := []string{}
 
-	log.Printf("focused view: %v", m.paneSelector.GetFocus())
+	log.Printf("focused view: %v", m.paneSelector.CurrentFocus())
 
-	switch m.paneSelector.GetFocus() {
+	switch m.paneSelector.CurrentFocus() {
 	case domain.PaneTodoList, domain.PaneInProgressList, domain.PaneDoneList, domain.PaneCollectionSelector:
-		if m.paneSelector.GetFocus() == domain.PaneCollectionSelector {
+		if m.paneSelector.CurrentFocus() == domain.PaneCollectionSelector {
 			renders = append(renders, focusedViewStyle.Render(m.models[domain.PaneCollectionSelector].View()))
 		} else {
 			renders = append(renders, docStyle.Render(m.models[domain.PaneCollectionSelector].View()))
 		}
 
-		if m.paneSelector.GetFocus() == domain.PaneTodoList {
+		if m.paneSelector.CurrentFocus() == domain.PaneTodoList {
 			renders = append(renders, focusedViewStyle.Render(m.models[domain.PaneTodoList].View()))
 		} else {
 			renders = append(renders, docStyle.Render(m.models[domain.PaneTodoList].View()))
 		}
 
-		if m.paneSelector.GetFocus() == domain.PaneInProgressList {
+		if m.paneSelector.CurrentFocus() == domain.PaneInProgressList {
 			renders = append(renders, focusedViewStyle.Render(m.models[domain.PaneInProgressList].View()))
 		} else {
 			renders = append(renders, docStyle.Render(m.models[domain.PaneInProgressList].View()))
 		}
 
-		if m.paneSelector.GetFocus() == domain.PaneDoneList {
+		if m.paneSelector.CurrentFocus() == domain.PaneDoneList {
 			renders = append(renders, focusedViewStyle.Render(m.models[domain.PaneDoneList].View()))
 		} else {
 			renders = append(renders, docStyle.Render(m.models[domain.PaneDoneList].View()))

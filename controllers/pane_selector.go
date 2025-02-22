@@ -19,20 +19,29 @@ func NewPaneSelector() *paneSelector {
 	}
 }
 
-func (c *paneSelector) GetFocus() domain.Pane {
+func (c *paneSelector) CurrentFocus() domain.Pane {
 	return c.focusedPane
 }
 
 func (c *paneSelector) FocusNext() {
-	current := 0
+	c.focusedPane = orderedPanes[(c.focusedPaneIndex()+1)%len(orderedPanes)]
+}
+
+func (c *paneSelector) FocusPrev() {
+	prev := c.focusedPaneIndex() - 1
+	if prev < 0 {
+		prev = len(orderedPanes) - 1
+	}
+	c.focusedPane = orderedPanes[prev]
+}
+
+func (c *paneSelector) focusedPaneIndex() int {
 	for i, p := range orderedPanes {
 		if c.focusedPane == p {
-			current = i
-			break
+			return i
 		}
 	}
-
-	c.focusedPane = orderedPanes[(current+1)%len(orderedPanes)]
+	return 0
 }
 
 func (c *paneSelector) SetView(view domain.Pane) {

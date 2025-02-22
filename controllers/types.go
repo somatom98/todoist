@@ -14,6 +14,8 @@ type ItemsRepo interface {
 }
 
 type PaneSelector interface {
-	GetFocus() domain.Pane
+	CurrentFocus() domain.Pane
 	FocusNext()
+	FocusPrev()
+	SetView(view domain.Pane)
 }
