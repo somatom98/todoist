@@ -12,7 +12,7 @@ type repo struct {
 	db *db.Queries
 }
 
-var _ Repo = &repo{}
+var _ ItemsRepo = &repo{}
 
 func NewRepo(database *sql.DB) *repo {
 	return &repo{

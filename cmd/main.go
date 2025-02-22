@@ -21,8 +21,9 @@ func main() {
 	defer conn.Close()
 
 	todoRepo := controllers.NewRepo(conn)
+	paneSelector := controllers.NewPaneSelector()
 
-	p := tea.NewProgram(models.NewMain(todoRepo))
+	p := tea.NewProgram(models.NewMain(todoRepo, paneSelector))
 
 	if _, err := p.Run(); err != nil {
 		log.Fatalf("dead %w", err)

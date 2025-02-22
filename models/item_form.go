@@ -88,7 +88,6 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			cmds = append(cmds, ViewCmd(ViewMsg{View: domain.ViewCollectionSelector}))
 			switch m.operation {
 			case domain.OperationAdd:
 				cmds = append(cmds, domain.AddCmd(item))
@@ -101,7 +100,6 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyTab:
 			m.nextInput()
 		case tea.KeyEsc:
-			cmds = append(cmds, ViewCmd(ViewMsg{View: domain.ViewCollectionSelector}))
 			return m, tea.Batch(cmds...)
 		}
 

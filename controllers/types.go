@@ -12,3 +12,8 @@ type ItemsRepo interface {
 	Add(ctx context.Context, item domain.Item) error
 	Update(ctx context.Context, id int64, item domain.Item) error
 }
+
+type PaneSelector interface {
+	GetFocus() domain.Pane
+	FocusNext()
+}

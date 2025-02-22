@@ -44,15 +44,9 @@ func (m *taskList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.todoRepo.Update(m.ctx, item.ID, item)
 			return m, domain.UpdateCmd(domain.UpdateMsg{})
 		case "a":
-			return m, tea.Batch(
-				domain.OperationCmd(domain.OperationAdd, m.current),
-				ViewCmd(ViewMsg{View: domain.ViewItemForm}),
-			)
+			return m, domain.OperationCmd(domain.OperationAdd, m.current)
 		case "c":
-			return m, tea.Batch(
-				domain.OperationCmd(domain.OperationChange, m.current),
-				ViewCmd(ViewMsg{View: domain.ViewItemForm}),
-			)
+			return m, domain.OperationCmd(domain.OperationChange, m.current)
 		}
 	case domain.UpdateMsg:
 		if msg.Collection != nil {

@@ -12,12 +12,12 @@ import (
 
 type collectionSelector struct {
 	ctx      context.Context
-	todoRepo controllers.Repo
+	todoRepo controllers.ItemsRepo
 	list     list.Model
 	current  domain.Collection
 }
 
-func NewCollectionSelector(todoRepo controllers.Repo) *collectionSelector {
+func NewCollectionSelector(todoRepo controllers.ItemsRepo) *collectionSelector {
 	return &collectionSelector{
 		ctx:      context.Background(),
 		todoRepo: todoRepo,
