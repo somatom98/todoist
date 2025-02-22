@@ -62,29 +62,21 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "tab", "l":
-			m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
-			m.paneSelector.FocusNext()
-			m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+			m.changeFocus(m.paneSelector.FocusNext)
 		case "h":
-			m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
-			m.paneSelector.FocusPrev()
-			m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+			m.changeFocus(m.paneSelector.FocusPrev)
 		default:
 			cmds = append(cmds, m.update(m.paneSelector.CurrentFocus(), msg))
 		}
 	case domain.OperationMsg:
-		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
-		m.paneSelector.SetFocus(domain.PaneItemForm)
-		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+		m.setFocus(domain.PaneItemForm)
 	case domain.AddMsg:
 		err := m.todoRepo.Add(context.TODO(), domain.Item(msg))
 		if err != nil {
 			log.Printf("err: %v", err)
 			break
 		}
-		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
-		m.paneSelector.SetFocus(domain.PaneCollectionSelector)
-		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+		m.setFocus(domain.PaneCollectionSelector)
 		return m, domain.UpdateCmd(domain.UpdateMsg{})
 	case domain.ChangeMsg:
 		err := m.todoRepo.Update(context.TODO(), domain.Item(msg).ID, domain.Item(msg))
@@ -92,9 +84,7 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			log.Printf("err: %v", err)
 			break
 		}
-		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
-		m.paneSelector.SetFocus(domain.PaneCollectionSelector)
-		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+		m.setFocus(domain.PaneCollectionSelector)
 		return m, domain.UpdateCmd(domain.UpdateMsg{})
 	default:
 		for i := range m.models {
@@ -123,4 +113,16 @@ func (m *mainModel) update(v domain.Pane, msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	m.models[v], cmd = m.models[v].Update(msg)
 	return cmd
+}
+
+func (m *mainModel) changeFocus(action func()) {
+	m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+	action()
+	m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+}
+
+func (m *mainModel) setFocus(pane domain.Pane) {
+	m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+	m.paneSelector.SetFocus(pane)
+	m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
 }
