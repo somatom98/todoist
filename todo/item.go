@@ -7,14 +7,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type Status string
-
-const (
-	StatusTodo       = "todo"
-	StatusInProgress = "in_progress"
-	StatusDone       = "done"
-)
-
 type Item struct {
 	ID         int64
 	Tit        string
@@ -35,12 +27,7 @@ func New(title, description, collection string) Item {
 }
 
 func (i Item) UpdateStatus() Item {
-	switch i.Status {
-	case StatusTodo:
-		i.Status = StatusInProgress
-	case StatusInProgress:
-		i.Status = StatusDone
-	}
+	i.Status = i.Status.Next()
 	return i
 }
 
@@ -61,5 +48,5 @@ func (i Item) Title() string {
 }
 
 func (i Item) Description() string {
-	return fmt.Sprintf("    %s", i.Tit)
+	return fmt.Sprintf("    %s", i.Descr)
 }

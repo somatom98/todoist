@@ -36,11 +36,11 @@ func NewMockRepo() *mockRepo {
 	}
 }
 
-func (r *mockRepo) Get(ctx context.Context, collection Collection) ([]Item, error) {
+func (r *mockRepo) Get(ctx context.Context, collection Collection, status Status) ([]Item, error) {
 	filtered := []Item{}
 
 	for _, item := range r.items {
-		if item.Collection == collection {
+		if item.Collection == collection && item.Status == status {
 			filtered = append(filtered, item)
 		}
 	}

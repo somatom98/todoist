@@ -24,7 +24,9 @@ func NewMain(todoRepo todo.Repo) *mainModel {
 		focusedView: int(viewCollectionSelector),
 		models: []tea.Model{
 			viewCollectionSelector: NewCollectionSelector(todoRepo),
-			viewTodoList:           NewTodoList(todoRepo),
+			viewTodoList:           NewTaskList(todo.StatusTodo, todoRepo),
+			viewInProgressList:     NewTaskList(todo.StatusInProgress, todoRepo),
+			viewDoneList:           NewTaskList(todo.StatusDone, todoRepo),
 			viewItemForm:           NewItemFormModel(),
 		},
 	}
@@ -87,9 +89,11 @@ func (m *mainModel) View() string {
 	log.Printf("focused view: %v", m.focusedView)
 
 	switch m.focusedView {
-	case int(viewTodoList), int(viewCollectionSelector):
+	case int(viewTodoList), int(viewInProgressList), int(viewDoneList), int(viewCollectionSelector):
 		renders = append(renders, docStyle.Render(m.models[viewCollectionSelector].View()))
 		renders = append(renders, docStyle.Render(m.models[viewTodoList].View()))
+		renders = append(renders, docStyle.Render(m.models[viewInProgressList].View()))
+		renders = append(renders, docStyle.Render(m.models[viewDoneList].View()))
 	case int(viewItemForm):
 		renders = append(renders, docStyle.Render(m.models[viewItemForm].View()))
 	}
@@ -103,6 +107,10 @@ func (m *mainModel) changeFocusedView() {
 	case int(viewCollectionSelector):
 		m.focusedView = int(viewTodoList)
 	case int(viewTodoList):
+		m.focusedView = int(viewInProgressList)
+	case int(viewInProgressList):
+		m.focusedView = int(viewDoneList)
+	case int(viewDoneList):
 		m.focusedView = int(viewCollectionSelector)
 	}
 }

@@ -65,10 +65,16 @@ select id, title, description, status, collection
 from items
 where
   collection = ?1
+  and status = ?2
 `
 
-func (q *Queries) GetItems(ctx context.Context, collection string) ([]Item, error) {
-	rows, err := q.db.QueryContext(ctx, getItems, collection)
+type GetItemsParams struct {
+	Collection string
+	Status     string
+}
+
+func (q *Queries) GetItems(ctx context.Context, arg GetItemsParams) ([]Item, error) {
+	rows, err := q.db.QueryContext(ctx, getItems, arg.Collection, arg.Status)
 	if err != nil {
 		return nil, err
 	}

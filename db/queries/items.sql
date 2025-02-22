@@ -17,7 +17,8 @@ from items;
 select *
 from items
 where
-  collection = @collection;
+  collection = @collection
+  and status = @status;
 
 -- name: UpdateItem :exec
 update items

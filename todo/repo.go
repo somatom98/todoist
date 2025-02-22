@@ -42,8 +42,11 @@ func (r *repo) Collections(ctx context.Context) ([]Collection, error) {
 	return collections, nil
 }
 
-func (r *repo) Get(ctx context.Context, collection Collection) ([]Item, error) {
-	items, err := r.db.GetItems(ctx, string(collection))
+func (r *repo) Get(ctx context.Context, collection Collection, status Status) ([]Item, error) {
+	items, err := r.db.GetItems(ctx, db.GetItemsParams{
+		Collection: string(collection),
+		Status:     string(status),
+	})
 	if err != nil {
 		return nil, err
 	}
