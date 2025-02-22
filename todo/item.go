@@ -7,11 +7,19 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type Status string
+
+const (
+	StatusTodo       = "todo"
+	StatusInProgress = "in_progress"
+	StatusDone       = "done"
+)
+
 type Item struct {
 	ID         int64
 	Tit        string
 	Descr      string
-	Completed  bool
+	Status     Status
 	Collection Collection
 }
 
@@ -21,13 +29,18 @@ func New(title, description, collection string) Item {
 	return Item{
 		Tit:        title,
 		Descr:      description,
-		Completed:  false,
+		Status:     "todo",
 		Collection: Collection(collection),
 	}
 }
 
 func (i Item) UpdateStatus() Item {
-	i.Completed = !i.Completed
+	switch i.Status {
+	case StatusTodo:
+		i.Status = StatusInProgress
+	case StatusInProgress:
+		i.Status = StatusDone
+	}
 	return i
 }
 
@@ -39,7 +52,7 @@ func (i Item) FilterValue() string {
 
 func (i Item) Title() string {
 	mark := "[ ]"
-	if i.Completed {
+	if i.Status == StatusDone {
 		mark = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("2")).
 			Render("[✔]")

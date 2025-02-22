@@ -61,7 +61,7 @@ func (q *Queries) GetCollections(ctx context.Context) ([]string, error) {
 }
 
 const getItems = `-- name: GetItems :many
-select id, title, description, completed, collection
+select id, title, description, status, collection
 from items
 where
   collection = ?1
@@ -80,7 +80,7 @@ func (q *Queries) GetItems(ctx context.Context, collection string) ([]Item, erro
 			&i.ID,
 			&i.Title,
 			&i.Description,
-			&i.Completed,
+			&i.Status,
 			&i.Collection,
 		); err != nil {
 			return nil, err
@@ -101,7 +101,7 @@ update items
 set
   title = ?1,
   description = ?2,
-  completed = ?3,
+  status = ?3,
   collection = ?4
 where
   id = ?5
@@ -110,7 +110,7 @@ where
 type UpdateItemParams struct {
 	Title       string
 	Description string
-	Completed   bool
+	Status      string
 	Collection  string
 	ID          int64
 }
@@ -119,7 +119,7 @@ func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) error {
 	_, err := q.db.ExecContext(ctx, updateItem,
 		arg.Title,
 		arg.Description,
-		arg.Completed,
+		arg.Status,
 		arg.Collection,
 		arg.ID,
 	)

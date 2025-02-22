@@ -17,19 +17,19 @@ func NewMockRepo() *mockRepo {
 			{
 				Tit:        "First todo",
 				Descr:      "Description",
-				Completed:  false,
+				Status:     "todo",
 				Collection: "main",
 			},
 			{
 				Tit:        "Second todo",
 				Descr:      "Description",
-				Completed:  true,
+				Status:     "done",
 				Collection: "secondary",
 			},
 			{
 				Tit:        "Second todo",
 				Descr:      "Description",
-				Completed:  true,
+				Status:     "done",
 				Collection: "main",
 			},
 		},

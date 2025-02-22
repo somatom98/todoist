@@ -54,7 +54,7 @@ func (r *repo) Get(ctx context.Context, collection Collection) ([]Item, error) {
 			ID:         item.ID,
 			Tit:        item.Title,
 			Descr:      item.Description,
-			Completed:  item.Completed,
+			Status:     Status(item.Status),
 			Collection: Collection(item.Collection),
 		})
 	}
@@ -65,7 +65,7 @@ func (r *repo) Update(ctx context.Context, id int64, item Item) error {
 	return r.db.UpdateItem(ctx, db.UpdateItemParams{
 		Title:       item.Tit,
 		Description: item.Descr,
-		Completed:   item.Completed,
+		Status:      string(item.Status),
 		Collection:  string(item.Collection),
 		ID:          id,
 	})

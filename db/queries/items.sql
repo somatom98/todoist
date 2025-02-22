@@ -24,7 +24,7 @@ update items
 set
   title = @title,
   description = @description,
-  completed = @completed,
+  status = @status,
   collection = @collection
 where
   id = @id;
