@@ -41,7 +41,7 @@ func (m *taskList) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			item := m.list.SelectedItem().(todo.Item)
 			item = item.UpdateStatus()
 			m.todoRepo.Update(m.ctx, item.ID, item)
-			m.list.SetItem(m.list.Index(), item)
+			return m, todo.UpdateCmd(todo.UpdateMsg{})
 		case "a":
 			return m, tea.Batch(
 				todo.OperationCmd(todo.OperationAdd, m.current),
