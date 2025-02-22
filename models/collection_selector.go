@@ -48,7 +48,7 @@ func (m *collectionSelector) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		h, v := paneStyle.GetFrameSize()
 		m.width = (msg.Width - h) / 4
-		m.height = msg.Height - v
+		m.height = (msg.Height - v)
 		m.list.SetSize(m.width, m.height)
 	}
 

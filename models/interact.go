@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -35,20 +34,20 @@ var (
 	errorStyle    = lipgloss.NewStyle().Foreground(darkRed)
 )
 
-type itemFormModel struct {
-	inputs    []textinput.Model
-	focused   int
-	item      domain.Item
-	operation domain.Operation
-	err       error
+type interactModel struct {
+	inputs       []textinput.Model
+	focusedInput int
+	item         domain.Item
+	operation    domain.Operation
+	err          error
+	focused      bool
 }
 
-func NewItemFormModel() itemFormModel {
+func NewInteractModel() *interactModel {
 	inputs := make([]textinput.Model, 3)
 	inputs[title] = textinput.New()
 	inputs[title].Placeholder = "Title - It must be unique"
 	inputs[title].Focus()
-	inputs[title].Width = 30
 
 	inputs[description] = textinput.New()
 	inputs[description].Placeholder = "Description - here you can add more details"
@@ -56,26 +55,26 @@ func NewItemFormModel() itemFormModel {
 	inputs[collection] = textinput.New()
 	inputs[collection].Placeholder = "Collection"
 
-	return itemFormModel{
-		inputs:  inputs,
-		focused: 0,
+	return &interactModel{
+		inputs:       inputs,
+		focusedInput: 0,
 	}
 }
 
-func (m itemFormModel) Init() tea.Cmd {
+func (m *interactModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	log.Printf("ITEM FORM, msg: %T - %+v", msg, msg)
+func (m *interactModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			if m.focused != len(m.inputs)-1 {
+			if m.focusedInput != len(m.inputs)-1 {
 				m.nextInput()
+				return m, nil
 			}
 
 			item := m.item
@@ -83,9 +82,9 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			item.Descr = m.inputs[description].Value()
 			item.Collection = domain.Collection(m.inputs[collection].Value())
 			m.err = m.validate(item)
-			log.Printf("error: %v", m.err)
 			if m.err != nil {
-				break
+				log.Printf("error: %v", m.err)
+				return m, nil
 			}
 
 			switch m.operation {
@@ -100,13 +99,15 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyTab:
 			m.nextInput()
 		case tea.KeyEsc:
-			return m, tea.Batch(cmds...)
+			// TODO: domain.CancelCmd()
+		case tea.KeyCtrlC:
+			return m, tea.Quit
 		}
 
 		for i := range m.inputs {
 			m.inputs[i].Blur()
 		}
-		m.inputs[m.focused].Focus()
+		m.inputs[m.focusedInput].Focus()
 	case domain.OperationMsg:
 		m.operation = msg.Operation
 		m.item = msg.Item
@@ -123,47 +124,35 @@ func (m itemFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m itemFormModel) View() string {
-	bottomMessage := continueStyle.Render("Continue ->")
+func (m *interactModel) View() string {
+	style := paneStyle
+	if m.focused {
+		style = focusedPaneStyle
+	}
+
 	if m.err != nil {
-		bottomMessage = errorStyle.Render(fmt.Sprintf("Error: %s", m.err))
+		style.Render(errorStyle.Render(m.err.Error()))
 	}
 
-	return fmt.Sprintf(
-		`
- %s
- %s
-
- %s
- %s
-
- %s
- %s
-
- %s
-`,
-		inputStyle.Width(30).Render("Title"),
-		m.inputs[title].View(),
-		inputStyle.Render("Description"),
-		m.inputs[description].View(),
-		inputStyle.Render("Collection"),
-		m.inputs[collection].View(),
-		bottomMessage,
-	) + "\n"
+	return style.Render(m.inputs[m.focusedInput].View())
 }
 
-func (m *itemFormModel) nextInput() {
-	m.focused = (m.focused + 1) % len(m.inputs)
+func (m *interactModel) ChangeFocus() {
+	m.focused = !m.focused
 }
 
-func (m *itemFormModel) prevInput() {
-	m.focused--
-	if m.focused < 0 {
-		m.focused = len(m.inputs) - 1
+func (m *interactModel) nextInput() {
+	m.focusedInput = (m.focusedInput + 1) % len(m.inputs)
+}
+
+func (m *interactModel) prevInput() {
+	m.focusedInput--
+	if m.focusedInput < 0 {
+		m.focusedInput = len(m.inputs) - 1
 	}
 }
 
-func (m itemFormModel) validate(item domain.Item) error {
+func (m interactModel) validate(item domain.Item) error {
 	if item.Tit == "" {
 		return errInvalidTitle
 	}
@@ -174,7 +163,4 @@ func (m itemFormModel) validate(item domain.Item) error {
 		return errInvalidCollection
 	}
 	return nil
-}
-
-func (m itemFormModel) ChangeFocus() {
 }

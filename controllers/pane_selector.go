@@ -44,6 +44,6 @@ func (c *paneSelector) focusedPaneIndex() int {
 	return 0
 }
 
-func (c *paneSelector) SetView(view domain.Pane) {
+func (c *paneSelector) SetFocus(view domain.Pane) {
 	c.focusedPane = view
 }

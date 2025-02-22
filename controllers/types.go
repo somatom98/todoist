@@ -17,5 +17,5 @@ type PaneSelector interface {
 	CurrentFocus() domain.Pane
 	FocusNext()
 	FocusPrev()
-	SetView(view domain.Pane)
+	SetFocus(view domain.Pane)
 }

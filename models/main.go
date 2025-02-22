@@ -38,7 +38,7 @@ func NewMain(todoRepo controllers.ItemsRepo, paneSelector controllers.PaneSelect
 			domain.PaneTodoList:           NewTaskList(domain.StatusTodo, todoRepo),
 			domain.PaneInProgressList:     NewTaskList(domain.StatusInProgress, todoRepo),
 			domain.PaneDoneList:           NewTaskList(domain.StatusDone, todoRepo),
-			domain.PaneItemForm:           NewItemFormModel(),
+			domain.PaneItemForm:           NewInteractModel(),
 		},
 	}
 }
@@ -49,7 +49,6 @@ func (m *mainModel) Init() tea.Cmd {
 }
 
 func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	log.Printf("MAIN, msg: %T - %+v", msg, msg)
 	cmds := []tea.Cmd{}
 
 	switch msg := msg.(type) {
@@ -73,21 +72,29 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		default:
 			cmds = append(cmds, m.update(m.paneSelector.CurrentFocus(), msg))
 		}
+	case domain.OperationMsg:
+		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+		m.paneSelector.SetFocus(domain.PaneItemForm)
+		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
 	case domain.AddMsg:
 		err := m.todoRepo.Add(context.TODO(), domain.Item(msg))
 		if err != nil {
-			// TODO: popup
-			log.Printf("err: %w", err)
+			log.Printf("err: %v", err)
 			break
 		}
+		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+		m.paneSelector.SetFocus(domain.PaneCollectionSelector)
+		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
 		return m, domain.UpdateCmd(domain.UpdateMsg{})
 	case domain.ChangeMsg:
 		err := m.todoRepo.Update(context.TODO(), domain.Item(msg).ID, domain.Item(msg))
 		if err != nil {
-			// TODO: popup
-			log.Printf("err: %w", err)
+			log.Printf("err: %v", err)
 			break
 		}
+		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
+		m.paneSelector.SetFocus(domain.PaneCollectionSelector)
+		m.models[m.paneSelector.CurrentFocus()].(Model).ChangeFocus()
 		return m, domain.UpdateCmd(domain.UpdateMsg{})
 	default:
 		for i := range m.models {
@@ -99,23 +106,17 @@ func (m *mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *mainModel) View() string {
-	var s string
-	renders := []string{}
-
-	log.Printf("focused view: %v", m.paneSelector.CurrentFocus())
-
-	switch m.paneSelector.CurrentFocus() {
-	case domain.PaneTodoList, domain.PaneInProgressList, domain.PaneDoneList, domain.PaneCollectionSelector:
-		renders = append(renders, m.models[domain.PaneCollectionSelector].View())
-		renders = append(renders, m.models[domain.PaneTodoList].View())
-		renders = append(renders, m.models[domain.PaneInProgressList].View())
-		renders = append(renders, m.models[domain.PaneDoneList].View())
-	case domain.PaneItemForm:
-		renders = append(renders, docStyle.Render(m.models[domain.PaneItemForm].View()))
-	}
-
-	s = lipgloss.JoinHorizontal(lipgloss.Left, renders...)
-	return s
+	return lipgloss.JoinHorizontal(lipgloss.Left,
+		m.models[domain.PaneCollectionSelector].View(),
+		lipgloss.JoinVertical(lipgloss.Top,
+			m.models[domain.PaneItemForm].View(),
+			lipgloss.JoinHorizontal(lipgloss.Left,
+				m.models[domain.PaneTodoList].View(),
+				m.models[domain.PaneInProgressList].View(),
+				m.models[domain.PaneDoneList].View(),
+			),
+		),
+	)
 }
 
 func (m *mainModel) update(v domain.Pane, msg tea.Msg) tea.Cmd {
